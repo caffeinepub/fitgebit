@@ -1,0 +1,439 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 11,
+  "summary": "FitGebit app for a Belgian dental practice: Internet Identity auth with roles (Assistants/Manager), assistant overtime tracking (assistants enter minutes only; manager oversight/export), plus a shared collaborative to-do list with audit logging, notifications, multilingual UI, and enhanced task operations (frequency selection retained but due-day selection removed and existing due dates wiped; main list hides frequency column; recurrence rolls to next Monday with monthly to first Monday of next month; urgency remains frequency-based; pinned priority, real-time updates, compact/mobile-friendly UI, and per-task completion evidence via comments + photos with a user-visible task history ledger).",
+  "architectural_notes": [
+    "Use Internet Identity principals for authentication; store a per-principal unique username on first login.",
+    "Enforce role-based access: assistants can access only their own overtime entries; manager can access all assistants and audit logs.",
+    "Shared to-do list is global/shared state; audit log is immutable and manager-only.",
+    "Implement i18n with Dutch/French/English strings.",
+    "To-do list becomes the default post-login landing page with navigation to overtime/manager views.",
+    "Support daily/weekly/monthly recurring tasks with computed next-due-date and urgency-based sorting; pinned tasks override sorting.",
+    "Implement real-time to-do updates via polling or websocket-like approach if feasible on the platform.",
+    "Task completion can include comment + photo; store high-quality images with compression/limits (not thumbnails-only); validate JPEG/PNG and enforce size limits.",
+    "Add a per-task immutable history ledger visible to all users; keep separate from manager-only global audit log.",
+    "Remove due-date/due-day from user-facing To-do UI; wipe existing stored due dates."
+  ],
+  "known_issues": [
+    "Build/deploy pipeline failed with 'Our AI couldn't handle that request' when starting implementation; user requested rerun."
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-keep-the-application-name-and-branding-as-fitgebit-across-the-ui-login-profile-setup-header-and-dashboards-and-ensure-all-user-facing-text-is-in-english-while-retaining-language-selection-support-for-dutch-french-english-in-user-profiles",
+      "title": "Keep the application name and branding as \"FitGebit\" across the UI (login, profile setup, header, and dashboards) and ensure all user-facing text is in English, while retaining language selection support for Dutch/French/English in user profiles.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-in-app-notifications-to-include-to-do-list-events-when-a-task-is-added-edited-or-marked-done-show-notifications-to-logged-in-users-ensure-manager-oversight-notifications-remain-functional-for-overtime",
+      "title": "Extend in-app notifications to include to-do list events: when a task is added, edited, or marked done, show notifications to logged-in users; ensure manager oversight notifications remain functional for overtime.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-new-to-do-section-accessible-from-both-assistantdashboard-and-managerdashboard-e-g-as-a-new-tab-that-shows-the-shared-list-of-tasks-in-a-responsive-table-allows-adding-tasks-editing-tasks-and-marking-tasks-as-done-and-shows-last-completion-who-when-inline",
+      "title": "Add a new \"To-Do\" section accessible from both AssistantDashboard and ManagerDashboard (e.g., as a new tab) that shows the shared list of tasks in a responsive table, allows adding tasks, editing tasks, and marking tasks as done, and shows last completion (who/when) inline.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-manager-only-ui-view-to-browse-the-to-do-audit-log-within-the-managerdashboard-including-basic-filtering-by-action-type-and-or-task-and-chronological-ordering",
+      "title": "Add a manager-only UI view to browse the to-do audit log within the ManagerDashboard, including basic filtering (by action type and/or task) and chronological ordering.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enforce-role-based-access-and-data-leak-prevention-for-all-new-features-assistants-must-not-gain-access-to-manager-only-views-apis-to-do-list-must-not-expose-assistants-private-overtime-history-beyond-existing-manager-controls",
+      "title": "Enforce role-based access and data-leak prevention for all new features: assistants must not gain access to manager-only views/APIs; to-do list must not expose assistants’ private overtime history beyond existing manager controls.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-basic-validation-and-error-handling-for-to-do-operations-frontend-backend-required-title-valid-frequency-enum-weekly-monthly-and-due-date-format-validation-when-provided-surface-errors-to-users-via-existing-toast-patterns",
+      "title": "Add basic validation and error handling for to-do operations (frontend + backend): required title, valid frequency enum (weekly/monthly), and due date format validation when provided; surface errors to users via existing toast patterns.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-introduce-a-consistent-simple-responsive-visual-theme-for-the-new-to-do-and-audit-log-screens-that-matches-the-existing-fitgebit-ui-cards-tables-tabs-and-typography-and-avoids-introducing-a-new-conflicting-style-direction",
+      "title": "Introduce a consistent, simple, responsive visual theme for the new To-Do and Audit Log screens that matches the existing FitGebit UI (cards, tables, tabs, and typography) and avoids introducing a new conflicting style direction.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-post-login-default-view-focus-on-the-shared-to-do-list-for-both-assistants-and-managers-while-keeping-clear-navigation-tabs-to-access-overtime-tracking-assistants-and-manager-dashboard-sections",
+      "title": "Make the post-login default view focus on the shared To-Do list for both assistants and managers, while keeping clear navigation/tabs to access overtime tracking (assistants) and manager dashboard sections.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-any-welcome-screen-banner-large-header-sections-that-consume-vertical-space-on-dashboards-keeping-at-most-minimal-fitgebit-branding-and-ensure-key-content-is-visible-without-scrolling-on-standard-screens-desktop-and-mobile",
+      "title": "Remove any welcome screen/banner/large header sections that consume vertical space on dashboards, keeping at most minimal FitGebit branding, and ensure key content is visible without scrolling on standard screens (desktop and mobile).",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-task-frequency-to-support-daily-weekly-and-monthly-in-the-backend-api-and-frontend-task-create-edit-dialog-including-validation-updates",
+      "title": "Extend task frequency to support daily, weekly, and monthly in the backend API and frontend task create/edit dialog, including validation updates.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-recurring-task-behavior-so-that-when-a-recurring-task-is-marked-done-the-task-automatically-rolls-forward-to-the-next-cycle-next-day-week-month-and-becomes-open-again-for-the-new-cycle-while-still-recording-who-when-completed-the-previous-cycle",
+      "title": "Implement recurring task behavior so that when a recurring task is marked done, the task automatically rolls forward to the next cycle (next day/week/month) and becomes \"open\" again for the new cycle, while still recording who/when completed the previous cycle.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-manual-priority-pinning-that-managers-and-assistants-can-toggle-on-tasks-pinned-tasks-must-remain-at-the-top-of-the-to-do-list-regardless-of-automatic-urgency-sorting",
+      "title": "Add manual priority (pinning) that managers and assistants can toggle on tasks; pinned tasks must remain at the top of the To-Do list regardless of automatic urgency sorting.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-automatically-sort-and-display-tasks-by-urgency-most-urgent-first-using-due-date-proximity-and-recurrence-prioritizing-overdue-and-soon-due-tasks-while-still-showing-the-full-list-with-no-pagination-truncation",
+      "title": "Automatically sort and display tasks by urgency (most urgent first) using due date proximity and recurrence, prioritizing overdue and soon-due tasks, while still showing the full list with no pagination/truncation.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frequency-based-task-color-coding-using-pastel-colors-daily-weekly-monthly-that-becomes-more-prominent-as-the-next-due-date-approaches-also-show-next-due-date-on-hover",
+      "title": "Add frequency-based task color-coding using pastel colors (daily/weekly/monthly) that becomes more prominent as the next due date approaches; also show next due date on hover.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-real-time-like-updates-for-the-to-do-list-using-polling-no-websockets-keeping-the-ui-clean-and-ensuring-updates-do-not-disrupt-user-interactions-e-g-while-dialogs-are-open",
+      "title": "Add real-time-like updates for the To-Do list using polling (no WebSockets), keeping the UI clean and ensuring updates do not disrupt user interactions (e.g., while dialogs are open).",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-when-marking-a-task-as-done-provide-an-optional-comment-field-and-optional-photo-upload-store-photos-securely-with-size-limits-and-jpeg-png-validation-preserving-good-quality-with-reasonable-compression-show-completion-comment-and-thumbnail-inline-with-completion-details-visible-to-all-users",
+      "title": "When marking a task as done, provide an optional comment field and optional photo upload; store photos securely with size limits and JPEG/PNG validation, preserving good quality with reasonable compression; show completion comment and thumbnail inline with completion details visible to all users.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-per-task-immutable-history-ledger-visible-to-all-users-that-shows-a-chronological-log-of-all-task-actions-create-edit-mark-done-including-completion-comments-and-photos-access-this-ledger-by-clicking-a-task-e-g-modal-or-expandable-section-keep-the-existing-system-wide-audit-log-manager-only",
+      "title": "Implement a per-task immutable history ledger visible to all users that shows a chronological log of all task actions (create/edit/mark done), including completion comments and photos; access this ledger by clicking a task (e.g., modal or expandable section). Keep the existing system-wide audit log manager-only.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-new-completion-events-including-comment-photo-with-existing-in-app-notifications-for-to-do-actions-so-users-receive-a-notification-when-a-task-is-marked-done-and-optionally-includes-whether-evidence-was-attached-while-keeping-notification-wording-concise-and-in-english",
+      "title": "Integrate new completion events (including comment/photo) with existing in-app notifications for to-do actions so users receive a notification when a task is marked done (and optionally includes whether evidence was attached), while keeping notification wording concise and in English.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-due-day-input-from-the-task-create-edit-dialog-while-keeping-the-task-frequency-selector-daily-weekly-monthly-the-dialog-must-no-longer-validate-parse-or-submit-any-due-day-value",
+      "title": "Remove the due-day input from the task create/edit dialog while keeping the task frequency selector (daily/weekly/monthly). The dialog must no longer validate, parse, or submit any due-day value.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-due-day-column-from-the-main-to-do-table-and-stop-displaying-formatted-due-day-values-anywhere-in-the-to-do-list-ui",
+      "title": "Remove the \"Due Day\" column from the main to-do table and stop displaying formatted due-day values anywhere in the to-do list UI.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-hide-remove-the-frequency-column-from-the-main-to-do-table-while-keeping-frequency-based-task-color-coding-and-urgency-behavior-unchanged-from-the-user-perspective",
+      "title": "Hide/remove the \"Frequency\" column from the main to-do table while keeping frequency-based task color-coding and urgency behavior unchanged from the user perspective.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-all-frontend-date-urgency-utilities-so-task-recurrence-and-urgency-are-computed-without-any-due-day-input-and-follow-the-practice-schedule-open-days-monday-thursday-closed-friday-sunday-daily-tasks-roll-to-the-next-workday-mon-thu-weekly-tasks-roll-to-the-next-monday-monthly-tasks-roll-to-the-first-monday-of-the-next-month-urgency-must-be-based-on-the-selected-frequency-daily-weekly-monthly",
+      "title": "Update all frontend date/urgency utilities so task recurrence and urgency are computed without any due-day input and follow the practice schedule: open days Monday–Thursday; closed Friday–Sunday. Daily tasks roll to the next workday (Mon–Thu). Weekly tasks roll to the next Monday. Monthly tasks roll to the first Monday of the next month. Urgency must be based on the selected frequency (daily/weekly/monthly).",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-backend-task-apis-and-corresponding-frontend-react-query-hooks-to-match-the-new-task-shape-frequency-retained-due-day-removed-ensure-existing-task-create-edit-flows-still-work-end-to-end",
+      "title": "Update the backend task APIs and corresponding frontend React Query hooks to match the new task shape (frequency retained; due-day removed). Ensure existing task create/edit flows still work end-to-end.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-change-the-assistant-overtime-entry-ux-to-minutes-only-input-single-numeric-field-remove-hours-input-from-the-assistant-overtime-form-the-system-must-still-present-totals-broken-down-into-days-hours-minutes-in-summaries-and-exports-by-converting-from-stored-total-minutes",
+      "title": "Change the assistant overtime entry UX to minutes-only input (single numeric field). Remove hours input from the assistant overtime form. The system must still present totals broken down into days/hours/minutes in summaries and exports by converting from stored total minutes.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-manager-only-tracking-of-assistant-task-preference-aversion-per-task-at-minimum-preferred-hated-neutral-unset-so-the-manager-can-distribute-work-fairly-assistants-must-not-be-able-to-view-or-modify-these-preference-labels",
+      "title": "Add manager-only tracking of assistant task preference/aversion per task (at minimum: Preferred, Hated, Neutral/Unset) so the manager can distribute work fairly. Assistants must not be able to view or modify these preference labels.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-only-the-selected-form-field-labels-in-the-task-completion-dialog-so-the-words-evidence-and-completion-are-removed-specifically-changing-the-comment-field-label-to-comment-optional-and-the-photo-upload-label-to-photo-optional-english-exact-casing",
+      "title": "Update only the selected form field labels in the task completion dialog so the words \"evidence\" and \"completion\" are removed, specifically changing the comment field label to \"Comment (optional)\" and the photo upload label to \"Photo (optional)\" (English, exact casing).",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-move-the-entire-actions-column-in-the-to-do-tasks-table-to-be-the-leftmost-column-header-all-row-cells-instead-of-being-the-rightmost-column",
+      "title": "Move the entire “Actions” column in the To-Do tasks table to be the leftmost column (header + all row cells), instead of being the rightmost column.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-date-input-example-helper-paragraph-under-the-overtime-date-input-delete-it-with-no-replacement",
+      "title": "Remove the date input example/helper paragraph under the overtime date input (delete it with no replacement).",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Rename app to \"FitGebit\" with simple responsive UI header",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Internet Identity authentication; first-login unique username setup; roles: Assistants and Manager (creator is Manager)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Assistant view: personal overtime add/deduct with totals shown as workdays (8h/day), hours, minutes; personal history only",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Manager view: see all assistants totals and detailed entries; export overtime data to CSV",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Shared to-do list visible to all users: add/edit tasks (title, frequency weekly/monthly, due date); mark done with who/when visible",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Manager-only audit log for to-do actions (add/edit/done)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Notifications for new to-do actions",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Basic validation, role-based access/security to prevent data leakage",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Internationalization support: Dutch/French/English",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Implement backend data model and APIs for a shared to-do list visible to all authenticated users (assistants and manager), supporting: create task, list tasks, update task fields (title, frequency weekly/monthly, due date), mark task as done (recording who and when), and returning last-completion details as part of task listing.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Add an immutable (append-only) audit log for all to-do actions (add/edit/mark done) in the backend, recording at minimum: action type, acting user principal, acting username, timestamp, task identifier, and a human-readable change summary; expose a manager-only API to query the audit log.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "UI cleanup/compact layout: remove welcome banners/headers wasting space; keep minimal FitGebit branding; ensure key content visible without scrolling; mobile usability",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Post-login default view focuses on shared To-Do list; provide tabs/navigation to personal overtime (assistant) or manager dashboard",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Extend task frequency to daily/weekly/monthly; implement recurring behavior so tasks reset/roll forward after mark-done with next due date computed",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "To-do urgency ranking: auto-sort by urgency using last-done/created date, frequency, and due date proximity; overdue/soon-due prioritized; show next due date on hover; task color-coding by frequency with intensified color as due date approaches",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Task list UX: load and show full list without pagination/truncation; allow scrolling for long lists",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Real-time task list updates (polling or websockets if feasible) and integrate with existing notifications for to-do events including mark-done with comment/picture",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Mark task as done with optional comment and optional photo upload (camera/device); display comment and photo thumbnail inline with completion details (who/when) visible to all users",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Per-task history ledger visible to all users: immutable chronological log of task actions (add/edit/done) including completion comments/photos, accessible via clicking a task (modal/expand); keep separate from manager-only system-wide audit log",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Secure image handling for task completions: allow high-quality images with reasonable compression and limits; validate formats (JPEG/PNG) and enforce size constraints; store originals (not thumbnails-only)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Manual priority/pinning: allow manager and workers to pin tasks as priority so they remain at the top regardless of automatic urgency sorting",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "To-do UI/data change: remove due-day selection and associated column; wipe all existing due dates",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "To-do main list: hide the 'frequency' column while keeping frequency selection in create/edit; keep task colors and urgency sorting behavior unchanged",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Update recurring schedule logic for practice calendar: workdays Mon–Thu; weekly tasks roll to next Monday; monthly tasks roll to first Monday of next month; daily tasks roll to next workday (Mon–Thu)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Overtime entry UX: assistants enter overtime in minutes only; system computes totals into hours/days for summaries and exports",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Manager workload balancing: track per-task assistant preference/aversion (preferred vs hated) and expose in manager view to help distribute tasks equally",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Modify the backend to stop using/storing task due-day values, and ensure that any existing persisted due-day/due-date values are wiped during upgrade so all tasks have no due-day stored going forward.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Update task completion UI labels: use \"Comment (optional)\" and \"Photo (optional)\" and remove the words \"evidence\" and \"completion\" from those labels",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "To-do table UI: move the Actions column (header + all cells) to the far left",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Remove the date input example/helper text paragraph from the form UI (delete with no replacement)",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "FitGebit",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

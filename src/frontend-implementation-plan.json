@@ -1,0 +1,40 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Reorder To-Do Actions column and remove overtime date helper text",
+  "requirements": [
+    {
+      "id": "REQ-30",
+      "summary": "Move the To-Do table “Actions” column (header + row cells) to the leftmost position.",
+      "acceptanceCriteria": [
+        "In the To-Do table header, the “Actions” <th> renders as the first (leftmost) column header.",
+        "For each To-Do table row, the cell containing the Edit/Done buttons renders as the first (leftmost) cell in that row.",
+        "All existing button behaviors remain unchanged (Edit opens edit dialog; Done opens mark-done dialog).",
+        "No other columns’ data/content is changed; only the column order is updated."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/todo/ToDoTable.tsx",
+          "operation": "modify",
+          "description": "Reorder the To-Do tasks table columns so the “Actions” header and its corresponding row cell (Edit/Done buttons) render first, before the existing pin and data columns, without changing button handlers/behavior or any other column content."
+        }
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "summary": "Remove the helper/example paragraph rendered under the overtime Date input.",
+      "acceptanceCriteria": [
+        "The helper text paragraph under the overtime Date field is no longer rendered.",
+        "The Date input field remains present and continues to validate DD-MM-YYYY as before.",
+        "No new helper text is added in place of the removed paragraph."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/OvertimeForm.tsx",
+          "operation": "modify",
+          "description": "Delete the date format example/helper paragraph under the overtime Date input while leaving the Date input, placeholder, and existing DD-MM-YYYY validation logic unchanged."
+        }
+      ]
+    }
+  ]
+}

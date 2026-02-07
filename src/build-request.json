@@ -1,0 +1,70 @@
+{
+  "kind": "build_request",
+  "title": "Move To-Do Actions column to far left and remove overtime date format example text",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-30",
+      "text": "Move the entire “Actions” column in the To-Do tasks table to be the leftmost column (header + all row cells), instead of being the rightmost column.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "The actions column should be all the way on the left instead of the right side.",
+          "1. Yes"
+        ]
+      },
+      "acceptanceCriteria": [
+        "In the To-Do table header, the “Actions” <th> renders as the first (leftmost) column header.",
+        "For each To-Do table row, the cell containing the Edit/Done buttons renders as the first (leftmost) cell in that row.",
+        "All existing button behaviors remain unchanged (Edit opens edit dialog; Done opens mark-done dialog).",
+        "No other columns’ data/content is changed; only the column order is updated."
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "text": "Remove the date input example/helper paragraph under the overtime date input (delete it with no replacement).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Remove the date input example",
+          "2. yes"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The helper text paragraph under the overtime Date field is no longer rendered.",
+        "The Date input field remains present and continues to validate DD-MM-YYYY as before.",
+        "No new helper text is added in place of the removed paragraph."
+      ]
+    }
+  ],
+  "constraints": [
+    "Apply changes only to the two selected UI elements: (1) the helper paragraph under the overtime date field, and (2) the To-Do table “Actions” column (header + corresponding cells).",
+    "Do not edit any files under frontend/src/components/ui or any immutable paths listed in SYSTEM_CONTEXT.",
+    "Use English for any user-facing text."
+  ],
+  "nonGoals": [
+    "Do not change backend APIs, task/overtime data models, or persistence.",
+    "Do not change validation rules or date formatting logic for overtime beyond removing the helper paragraph.",
+    "Do not redesign the To-Do table styling beyond what is necessary to support the column reorder."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

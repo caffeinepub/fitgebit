@@ -1,0 +1,15 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-07T22:15:09.965Z",
+  "summary": "REQ-30 and REQ-31 appear implemented: the To-Do table “Actions” header is now the first column and the corresponding row cell for the action buttons appears first; the overtime date helper/example paragraph under the Date input is no longer rendered, while date validation/placeholder remains DD-MM-YYYY.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.74,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/components/OvertimeForm.tsx",
+    "frontend/src/components/todo/ToDoTable.tsx",
+    "project_state.json"
+  ]
+}
