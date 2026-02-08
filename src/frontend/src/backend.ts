@@ -259,6 +259,7 @@ export interface backendInterface {
     updateTask(taskId: bigint, title: string, description: string, frequency: TaskFrequency, isWeekly: boolean): Promise<void>;
     uploadAvatar(name: string, description: string, content: ExternalBlob): Promise<Avatar>;
     uploadProfilePicture(content: ExternalBlob): Promise<ExternalBlob>;
+    wipeStorage(): Promise<void>;
 }
 import type { AssistantTaskCompletionRecord as _AssistantTaskCompletionRecord, AssistantTaskHabits as _AssistantTaskHabits, AssistantTaskSummary as _AssistantTaskSummary, AuditLogAction as _AuditLogAction, AuditLogEntry as _AuditLogEntry, Avatar as _Avatar, ExternalBlob as _ExternalBlob, Language as _Language, TaskFrequency as _TaskFrequency, TaskHistoryEntry as _TaskHistoryEntry, TaskPreference as _TaskPreference, Time as _Time, ToDoTask as _ToDoTask, UserProfile as _UserProfile, UserRole as _UserRole, UserRole__1 as _UserRole__1, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -835,6 +836,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.uploadProfilePicture(await to_candid_ExternalBlob_n57(this._uploadFile, this._downloadFile, arg0));
             return from_candid_ExternalBlob_n20(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async wipeStorage(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.wipeStorage();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.wipeStorage();
+            return result;
         }
     }
 }

@@ -187,6 +187,7 @@ export interface _SERVICE {
   >,
   'uploadAvatar' : ActorMethod<[string, string, ExternalBlob], Avatar>,
   'uploadProfilePicture' : ActorMethod<[ExternalBlob], ExternalBlob>,
+  'wipeStorage' : ActorMethod<[], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

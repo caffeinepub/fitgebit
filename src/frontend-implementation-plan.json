@@ -1,6 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Reset users + first post-reset login becomes Manager (frontend scope)",
+  "title": "Implement backend wipe/reset operation and first-user manager assignment (frontend-only plan)",
   "requirements": []
 }

@@ -236,6 +236,7 @@ export const idlService = IDL.Service({
     ),
   'uploadAvatar' : IDL.Func([IDL.Text, IDL.Text, ExternalBlob], [Avatar], []),
   'uploadProfilePicture' : IDL.Func([ExternalBlob], [ExternalBlob], []),
+  'wipeStorage' : IDL.Func([], [], []),
 });
 
 export const idlInitArgs = [];
@@ -469,6 +470,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'uploadAvatar' : IDL.Func([IDL.Text, IDL.Text, ExternalBlob], [Avatar], []),
     'uploadProfilePicture' : IDL.Func([ExternalBlob], [ExternalBlob], []),
+    'wipeStorage' : IDL.Func([], [], []),
   });
 };
 

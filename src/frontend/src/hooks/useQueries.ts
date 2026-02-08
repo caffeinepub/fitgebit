@@ -474,3 +474,19 @@ export function useSetTaskPreference() {
     },
   });
 }
+
+// Admin/Wipe Queries
+export function useWipeStorage() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.wipeStorage();
+    },
+    onSuccess: () => {
+      queryClient.clear();
+    },
+  });
+}

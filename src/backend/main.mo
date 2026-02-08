@@ -13,9 +13,7 @@ import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -1385,5 +1383,24 @@ actor {
     };
 
     avatars.values().toArray();
+  };
+
+  public shared ({ caller }) func wipeStorage() : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+      Runtime.trap("Unauthorized: Only admins can perform a full reset");
+    };
+
+    taskState.clear();
+    auditLog.clear();
+    overtimeState.clear();
+    notificationState.clear();
+    taskHistory.clear();
+    avatars.clear();
+    nextTaskId := 0;
+    nextLogId := 0;
+    nextAvatarId := 0;
+    nextTaskHistoryId := 0;
+    taskPreferences.clear();
+    hiddenAvatarIds.clear();
   };
 };

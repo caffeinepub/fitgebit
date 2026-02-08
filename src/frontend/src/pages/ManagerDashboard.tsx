@@ -8,6 +8,7 @@ import ManagerAnalytics from '../components/ManagerAnalytics';
 import AuditLogView from '../components/todo/AuditLogView';
 import ToDoSection from '../components/todo/ToDoSection';
 import TaskPreferencesManager from '../components/todo/TaskPreferencesManager';
+import DangerZone from '../components/DangerZone';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, BarChart3, FileText, ListTodo, Settings } from 'lucide-react';
@@ -71,6 +72,10 @@ export default function ManagerDashboard({ userProfile }: ManagerDashboardProps)
               <FileText className="h-4 w-4" />
               Audit Log
             </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="todo" className="space-y-6">
@@ -113,39 +118,61 @@ export default function ManagerDashboard({ userProfile }: ManagerDashboardProps)
           <TabsContent value="audit">
             <AuditLogView />
           </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  System Settings
+                </CardTitle>
+                <CardDescription>
+                  Manage system-wide settings and configurations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Additional settings will appear here as needed.
+                </p>
+              </CardContent>
+            </Card>
+
+            <DangerZone />
+          </TabsContent>
         </Tabs>
       </main>
 
       <footer className="mt-12 border-t py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>
-            © 2026. Built with ❤️ using{' '}
-            <a
-              href="https://caffeine.ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-primary hover:underline"
-            >
-              caffeine.ai
-            </a>
-          </p>
+          © 2026. Built with love using{' '}
+          <a
+            href="https://caffeine.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-foreground transition-colors"
+          >
+            caffeine.ai
+          </a>
         </div>
       </footer>
 
-      <AlertDialog open={!!assistantToDelete} onOpenChange={(open) => !open && setAssistantToDelete(null)}>
+      <AlertDialog open={!!assistantToDelete} onOpenChange={() => setAssistantToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Assistant</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {assistantToDelete?.username}? This will permanently remove all their
-              data including overtime entries. This action cannot be undone.
+              Are you sure you want to delete {assistantToDelete?.username}? This will permanently
+              remove all their overtime entries and data. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteAssistantMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteAssistant}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteAssistantMutation.isPending}
+              className="bg-destructive hover:bg-destructive/90"
             >
               {deleteAssistantMutation.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>

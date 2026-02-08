@@ -166,4 +166,5 @@ export interface backendInterface {
     updateTask(taskId: bigint, title: string, description: string, frequency: TaskFrequency, isWeekly: boolean): Promise<void>;
     uploadAvatar(name: string, description: string, content: ExternalBlob): Promise<Avatar>;
     uploadProfilePicture(content: ExternalBlob): Promise<ExternalBlob>;
+    wipeStorage(): Promise<void>;
 }

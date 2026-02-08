@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T20:06:34.878Z",
+  "generatedAt": "2026-02-08T21:18:05.883Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,21 +12,21 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add a backend-only administrative operation to remove all previously assigned users by clearing all stored user profiles and any user-linked state that would otherwise become orphaned (e.g., overtime entries keyed by username, notifications keyed by principal, and task preferences keyed by username).",
+        "summary": "Add a backend-only administrative wipe/reset operation that clears all stored application data and resets all ID counters so the canister returns to a fresh state.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Update backend user registration/profile-creation logic so that after a reset (i.e., when there are zero user profiles), the first user who creates/completes a profile is assigned the Manager role automatically; all subsequent users are assigned the Assistant role by default.",
+        "summary": "Update backend user registration/profile-creation logic so that when there are zero stored user profiles (e.g., immediately after a wipe/reset), the first user who creates/completes a profile is automatically assigned the Manager role; all subsequent users default to Assistant role unless explicitly changed by existing logic.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "If the application currently persists user/profile state across upgrades, add/adjust conditional migration logic to ensure the new reset mechanism and the first-user-manager role assignment remain correct after canister upgrades (no corrupted state; no trapped reads).",
+        "summary": "Ensure canister upgrades remain safe after adding the wipe/reset mechanism and first-user manager assignment by adding/adjusting conditional migration logic in the backend migration file so upgraded deployments do not trap and state remains consistent.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
@@ -35,14 +35,17 @@
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
+    "frontend/src/components/DangerZone.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/ManagerDashboard.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

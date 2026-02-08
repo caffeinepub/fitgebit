@@ -1,72 +1,74 @@
 {
   "kind": "build_request",
-  "title": "Reset user profiles and auto-assign first post-reset login as Manager",
+  "title": "Implement backend wipe/reset operation and first-user manager assignment",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a backend-only administrative operation to remove all previously assigned users by clearing all stored user profiles and any user-linked state that would otherwise become orphaned (e.g., overtime entries keyed by username, notifications keyed by principal, and task preferences keyed by username).",
+      "text": "Add a backend-only administrative wipe/reset operation that clears all stored application data and resets all ID counters so the canister returns to a fresh state.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4",
+          "msg-8"
         ],
         "quotes": [
-          "Can you remove all previously assigned users",
-          "Yes and make it so the first user to log in is automatically assigned the manager role."
+          "Build the wipe",
+          "Try again"
         ]
       },
       "acceptanceCriteria": [
-        "There is a single callable backend method (via Candid/dfx) that clears all user profiles from persistent state.",
-        "After the operation completes, fetching the caller profile for any principal returns null until they register/create a profile again.",
-        "User-linked collections keyed by principal/username that relate to cleared users are also cleared so they do not reference deleted users."
+        "A new shared backend method exists to perform the wipe/reset and is callable only by an authorized admin (at minimum: an existing manager user).",
+        "The wipe/reset clears all in-memory/persisted state for: user profiles, tasks, audit logs, task history, avatars, task preferences, overtime entries, notifications, and any stored blobs tied to profile pictures/avatars/evidence photos (as supported by the blob-storage mixin).",
+        "All counters are reset to their initial values (including nextTaskId, nextLogId, nextAvatarId, nextTaskHistoryId).",
+        "After wipe/reset completes, querying tasks/audit log/task history returns empty results, and there are zero user profiles stored."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update backend user registration/profile-creation logic so that after a reset (i.e., when there are zero user profiles), the first user who creates/completes a profile is assigned the Manager role automatically; all subsequent users are assigned the Assistant role by default.",
+      "text": "Update backend user registration/profile-creation logic so that when there are zero stored user profiles (e.g., immediately after a wipe/reset), the first user who creates/completes a profile is automatically assigned the Manager role; all subsequent users default to Assistant role unless explicitly changed by existing logic.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "make it so the first user to log in is automatically assigned the manager role."
+          "Build the wipe"
         ]
       },
       "acceptanceCriteria": [
-        "When the user profile store is empty, the next successful profile creation results in role = manager for that caller.",
-        "When at least one profile exists, any subsequent successful profile creation results in role = assistant for that caller.",
-        "The role assignment behavior works correctly immediately after executing the reset operation in REQ-1."
+        "When userProfiles is empty, creating the first profile results in role == #manager for that profile.",
+        "When userProfiles is non-empty, creating a new profile results in role == #assistant by default (unless existing code already sets it differently).",
+        "Manager-only backend routes continue to enforce manager authorization based on the stored profile role."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "If the application currently persists user/profile state across upgrades, add/adjust conditional migration logic to ensure the new reset mechanism and the first-user-manager role assignment remain correct after canister upgrades (no corrupted state; no trapped reads).",
+      "text": "Ensure canister upgrades remain safe after adding the wipe/reset mechanism and first-user manager assignment by adding/adjusting conditional migration logic in the backend migration file so upgraded deployments do not trap and state remains consistent.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-8"
         ],
         "quotes": [
-          "Build"
+          "Try again"
         ]
       },
       "acceptanceCriteria": [
-        "Upgrading the canister preserves existing state unless the new explicit reset method is invoked.",
-        "After an upgrade, calling the reset method still clears user data and the next profile creation still becomes manager as specified."
+        "A backend migration file exists at backend/migration.mo and compiles with the project.",
+        "If any stable state is used/persisted across upgrades, migration handles schema/state changes needed for the wipe/reset and role assignment logic without trapping.",
+        "Post-upgrade, existing state (if present) remains readable and the app continues working; wipe/reset can still be invoked and fully clears state."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo; only add backend/migration.mo if state migration is required).",
-    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (immutable paths).",
+    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo; use backend/migration.mo only for upgrade handling as needed).",
+    "Do not modify any frontend files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files in frontend/src/components/ui.",
     "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Do not add a separate 'manager login' mechanism (Internet Identity remains the only authentication).",
-    "Do not add a UI button/screen for resetting users unless explicitly requested.",
-    "Do not introduce external databases or third-party auth providers."
+    "Do not add a new frontend UI flow for triggering the wipe/reset unless explicitly requested.",
+    "Do not add third-party authentication or external database/storage systems."
   ],
   "imageRequirements": {
     "required": [],

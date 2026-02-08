@@ -1,48 +1,62 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T20:06:34.876Z",
-  "summary": "Diff adds an empty migration module and updates backend/main.mo only in the shown header/typing area (reset API and role-assignment logic are not evidenced in the truncated diff). Also modifies project_state.json (not part of the BuildRequest requirements).",
+  "generatedAt": "2026-02-08T21:18:05.881Z",
+  "summary": "The diff introduces a new frontend “Danger Zone” UI and related hooks/pages changes to trigger a wipe, but the provided diff summary does not show clear evidence that the required backend wipe/reset method, first-user manager assignment in backend registration, or any upgrade/migration adjustments (backend/migration.mo) were implemented.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Add a backend-only administrative operation to clear all stored user profiles and any user-linked/orphanable state (e.g., overtime entries, notifications, task preferences).",
-      "reason": "The diff does not show any new publicly callable backend method that clears user profiles or associated user-linked collections; only type/import/migration wiring is visible in the truncated backend/main.mo snippet.",
+      "requirement": "Add a backend-only administrative wipe/reset operation that clears all stored application data and resets all ID counters so the canister returns to a fresh state.",
+      "reason": "Although the frontend adds a wipe UI and references a wipe mutation, the diff summary for backend/main.mo is truncated and does not show any new shared backend wipe/reset method, its access-control checks (manager-only), or explicit clearing of all listed state and counter resets.",
       "evidence": [
-        "backend/main.mo (truncated; no reset/clear method shown)"
+        "backend/main.mo (truncated; no wipe/reset method shown)",
+        "frontend/src/components/DangerZone.tsx (calls useWipeStorage / wipeStorageMutation)",
+        "frontend/src/hooks/useQueries.ts (mentions new wipeStorage mutation in file summary)"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Update profile-creation/registration so that when the profile store is empty the next created profile is assigned role=manager, otherwise role=assistant (works after reset).",
-      "reason": "No changes to profile creation/registration logic are shown; the snippet only shows type definitions (including UserRole) and does not evidence conditional role assignment based on whether the user store is empty.",
+      "requirement": "When there are zero stored user profiles, the first user who creates/completes a profile is automatically assigned the Manager role; subsequent users default to Assistant unless existing logic sets otherwise.",
+      "reason": "The diff summary does not show backend-side changes to the user profile creation/registration logic that would assign #manager to the first stored profile based on userProfiles being empty. Frontend messaging about first user being manager is not sufficient to satisfy the backend requirement.",
       "evidence": [
-        "backend/main.mo (truncated; no registration/profile creation logic shown)"
+        "backend/main.mo (truncated; no profile-creation role assignment logic shown)",
+        "frontend-file-summaries.txt (ProfileSetupPage mentions first account becomes Manager, but this is frontend text)"
       ]
     },
     {
       "id": "REQ-3",
-      "requirement": "Add/adjust upgrade migration logic so upgrades preserve state unless reset is called, and reset + first-user-manager behavior remains correct after upgrades.",
-      "reason": "Although backend/migration.mo is added and backend/main.mo indicates it is used, the migration implementation is a no-op and there is no evidence of conditional migration handling of existing persisted user/profile state or any upgrade-safe adjustments related to the new reset/role behavior.",
+      "requirement": "Ensure canister upgrades remain safe by adding/adjusting conditional migration logic in backend/migration.mo so upgrades do not trap and state remains consistent.",
+      "reason": "No backend/migration.mo file addition or modification is shown in the diff summary, so there is no evidence of required upgrade/migration handling for the new wipe/reset mechanism or role assignment changes.",
       "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo (\"with migration = Migration.run\")"
+        "File diff summary shows ADDED: 1 (frontend component), MODIFIED: 5; no backend/migration.mo listed"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Tracking new feature requests/status entries in project_state.json (AR-1..AR-5) unrelated to implementing the backend reset/role/migration behavior.",
-      "reason": "BuildRequest does not ask to modify or add project management metadata/state files; it focuses on backend Motoko changes only.",
+      "description": "New frontend UI flow to trigger a system-wide wipe/reset (“Danger Zone” component, Settings tab entry, confirmation dialog, cache clear, logout, and page reload).",
+      "reason": "The BuildRequest explicitly lists as a non-goal: “Do not add a new frontend UI flow for triggering the wipe/reset unless explicitly requested.” The diff adds exactly such a UI and wiring.",
       "evidence": [
-        "project_state.json"
+        "frontend/src/components/DangerZone.tsx",
+        "frontend/src/pages/ManagerDashboard.tsx (adds Settings tab and DangerZone import/render)",
+        "frontend/src/hooks/useQueries.ts (new wipeStorage mutation mentioned in summary)"
+      ]
+    },
+    {
+      "description": "Frontend ProfileSetupPage copy explaining first account becomes Manager and subsequent accounts become Assistants.",
+      "reason": "REQ-2 is a backend behavior change; adding new frontend messaging/UI copy about role assignment was not requested and is additional scope beyond backend changes.",
+      "evidence": [
+        "frontend-file-summaries.txt (ProfileSetupPage description includes this messaging)"
       ]
     }
   ],
-  "confidence": 0.66,
+  "confidence": 0.63,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/components/DangerZone.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/ManagerDashboard.tsx",
     "project_state.json"
   ]
 }

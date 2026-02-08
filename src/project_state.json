@@ -1,53 +1,48 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Backend role management: clear existing user profiles and auto-assign the first post-reset login as manager.",
+  "summary": "New project",
   "architectural_notes": [
-    "User roles are determined in backend user profile data (e.g., role=manager) rather than a separate manager login.",
-    "After a user reset, the first authenticated user should be promoted to manager automatically."
+    "Add an administrative wipe/reset operation that clears all persistent Maps/collections and resets ID counters; ensure it is properly access-controlled and safe to run (ideally one-time or restricted)."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Previous attempt to build/deploy the wipe function failed (\"AI was unable to complete your request\"), requiring a retry."
+  ],
+  "isFixRequest": true,
   "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add backend capability to delete/clear all previously assigned user profiles (reset users to zero).",
+      "summary": "Implement a wipe/reset function to clear all stored database data (profiles, tasks, logs/history, avatars, preferences) and reset counters",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Auto-assign the first user who logs in after a reset as the manager role.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Add a backend-only administrative operation to remove all previously assigned users by clearing all stored user profiles and any user-linked state that would otherwise become orphaned (e.g., overtime entries keyed by username, notifications keyed by principal, and task preferences keyed by username).",
+      "summary": "Add a backend-only administrative wipe/reset operation that clears all stored application data and resets all ID counters so the canister returns to a fresh state.",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-4",
-      "summary": "Update backend user registration/profile-creation logic so that after a reset (i.e., when there are zero user profiles), the first user who creates/completes a profile is assigned the Manager role automatically; all subsequent users are assigned the Assistant role by default.",
+      "id": "AR-3",
+      "summary": "Update backend user registration/profile-creation logic so that when there are zero stored user profiles (e.g., immediately after a wipe/reset), the first user who creates/completes a profile is automatically assigned the Manager role; all subsequent users default to Assistant role unless explicitly changed by existing logic.",
       "reqIds": [
         "REQ-2"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-5",
-      "summary": "If the application currently persists user/profile state across upgrades, add/adjust conditional migration logic to ensure the new reset mechanism and the first-user-manager role assignment remain correct after canister upgrades (no corrupted state; no trapped reads).",
+      "id": "AR-4",
+      "summary": "Ensure canister upgrades remain safe after adding the wipe/reset mechanism and first-user manager assignment by adding/adjusting conditional migration logic in the backend migration file so upgraded deployments do not trap and state remains consistent.",
       "reqIds": [
         "REQ-3"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Reset user profiles and auto-assign first post-reset login as Manager",
+  "projectName": "Implement backend wipe/reset operation and first-user manager assignment",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
