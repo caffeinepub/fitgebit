@@ -173,6 +173,7 @@ export interface _SERVICE {
     undefined
   >,
   'registerAssistant' : ActorMethod<[string, Language, string], undefined>,
+  'resetUsersAndClearOrphanedState' : ActorMethod<[boolean], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'setPresetAvatar' : ActorMethod<[bigint], Avatar>,
   'setTaskPinnedStatus' : ActorMethod<[bigint, boolean], undefined>,

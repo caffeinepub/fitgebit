@@ -251,6 +251,7 @@ export interface backendInterface {
     logOvertime(date: string, minutes: bigint, comment: string, isAdd: boolean): Promise<void>;
     markTaskDone(taskId: bigint, photoData: ExternalBlob | null, completionComment: string | null): Promise<void>;
     registerAssistant(username: string, language: Language, initials: string): Promise<void>;
+    resetUsersAndClearOrphanedState(clearTasks: boolean): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setPresetAvatar(avatarId: bigint): Promise<Avatar>;
     setTaskPinnedStatus(taskId: bigint, isPinned: boolean): Promise<void>;
@@ -721,6 +722,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.registerAssistant(arg0, to_candid_Language_n59(this._uploadFile, this._downloadFile, arg1), arg2);
+            return result;
+        }
+    }
+    async resetUsersAndClearOrphanedState(arg0: boolean): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.resetUsersAndClearOrphanedState(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.resetUsersAndClearOrphanedState(arg0);
             return result;
         }
     }

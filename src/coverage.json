@@ -1,34 +1,48 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T18:46:00.654Z",
+  "generatedAt": "2026-02-08T20:06:34.878Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 0,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Increase the size of the selected header logo image at XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[1]/img[1] to double its current rendered size by updating only that <img> element’s sizing styles/classes (currently Tailwind className \"h-8 w-8\" in frontend/src/components/Header.tsx).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/Header.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/Header.tsx"
-        ]
+        "summary": "Add a backend-only administrative operation to remove all previously assigned users by clearing all stored user profiles and any user-linked state that would otherwise become orphaned (e.g., overtime entries keyed by username, notifications keyed by principal, and task preferences keyed by username).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Update backend user registration/profile-creation logic so that after a reset (i.e., when there are zero user profiles), the first user who creates/completes a profile is assigned the Manager role automatically; all subsequent users are assigned the Assistant role by default.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "If the application currently persists user/profile state across upgrades, add/adjust conditional migration logic to ensure the new reset mechanism and the first-user-manager role assignment remain correct after canister upgrades (no corrupted state; no trapped reads).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/Header.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

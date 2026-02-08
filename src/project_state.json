@@ -1,38 +1,53 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project aims to deploy an app to the Internet Computer (IC) for real-world use and needs guidance/assets adjustments (e.g., resizing visuals).",
+  "summary": "Backend role management: clear existing user profiles and auto-assign the first post-reset login as manager.",
   "architectural_notes": [
-    "Target deployment platform: Internet Computer (IC); deployment expected via dfx workflow (frontend/backend canisters)."
+    "User roles are determined in backend user profile data (e.g., role=manager) rather than a separate manager login.",
+    "After a user reset, the first authenticated user should be promoted to manager automatically."
   ],
   "known_issues": [],
   "isFixRequest": false,
-  "existing_features": [
-    {
-      "id": "feature-increase-the-size-of-the-selected-header-logo-image-at-xpath-html-1-body-1-div-1-div-1-header-1-div-1-div-1-img-1-to-double-its-current-rendered-size-by-updating-only-that-img-element-s-sizing-styles-classes-currently-tailwind-classname-h-8-w-8-in-frontend-src-components-header-tsx",
-      "title": "Increase the size of the selected header logo image at XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[1]/img[1] to double its current rendered size by updating only that <img> element’s sizing styles/classes (currently Tailwind className \"h-8 w-8\" in frontend/src/components/Header.tsx).",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    }
-  ],
+  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Provide step-by-step deployment guidance for going live on the Internet Computer using dfx (frontend/backend/both).",
+      "summary": "Add backend capability to delete/clear all previously assigned user profiles (reset users to zero).",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Resize the selected image/visual asset to double its current size.",
+      "summary": "Auto-assign the first user who logs in after a reset as the manager role.",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Add a backend-only administrative operation to remove all previously assigned users by clearing all stored user profiles and any user-linked state that would otherwise become orphaned (e.g., overtime entries keyed by username, notifications keyed by principal, and task preferences keyed by username).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Update backend user registration/profile-creation logic so that after a reset (i.e., when there are zero user profiles), the first user who creates/completes a profile is assigned the Manager role automatically; all subsequent users are assigned the Assistant role by default.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "If the application currently persists user/profile state across upgrades, add/adjust conditional migration logic to ensure the new reset mechanism and the first-user-manager role assignment remain correct after canister upgrades (no corrupted state; no trapped reads).",
+      "reqIds": [
+        "REQ-3"
+      ],
       "status": "pending"
     }
   ],
-  "gameProjectType": "none",
-  "projectName": "Double the header logo size",
+  "projectName": "Reset user profiles and auto-assign first post-reset login as Manager",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

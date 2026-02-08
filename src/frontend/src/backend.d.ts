@@ -158,6 +158,7 @@ export interface backendInterface {
     logOvertime(date: string, minutes: bigint, comment: string, isAdd: boolean): Promise<void>;
     markTaskDone(taskId: bigint, photoData: ExternalBlob | null, completionComment: string | null): Promise<void>;
     registerAssistant(username: string, language: Language, initials: string): Promise<void>;
+    resetUsersAndClearOrphanedState(clearTasks: boolean): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setPresetAvatar(avatarId: bigint): Promise<Avatar>;
     setTaskPinnedStatus(taskId: bigint, isPinned: boolean): Promise<void>;

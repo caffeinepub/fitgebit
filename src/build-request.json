@@ -1,34 +1,72 @@
 {
   "kind": "build_request",
-  "title": "Double the header logo size",
+  "title": "Reset user profiles and auto-assign first post-reset login as Manager",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Increase the size of the selected header logo image at XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[1]/img[1] to double its current rendered size by updating only that <img> element’s sizing styles/classes (currently Tailwind className \"h-8 w-8\" in frontend/src/components/Header.tsx).",
-      "target": "frontend",
+      "text": "Add a backend-only administrative operation to remove all previously assigned users by clearing all stored user profiles and any user-linked state that would otherwise become orphaned (e.g., overtime entries keyed by username, notifications keyed by principal, and task preferences keyed by username).",
+      "target": "backend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Can you make this bigger (double size)"
+          "Can you remove all previously assigned users",
+          "Yes and make it so the first user to log in is automatically assigned the manager role."
         ]
       },
       "acceptanceCriteria": [
-        "In the app header, the FitGebit logo image renders at 2x the previous width and height (e.g., from 32x32 to 64x64).",
-        "No other elements (spacing, other icons, avatars, buttons) are modified aside from any necessary layout accommodation caused by the larger logo.",
-        "The change is implemented in frontend/src/components/Header.tsx by adjusting the selected <img> element’s Tailwind size classes."
+        "There is a single callable backend method (via Candid/dfx) that clears all user profiles from persistent state.",
+        "After the operation completes, fetching the caller profile for any principal returns null until they register/create a profile again.",
+        "User-linked collections keyed by principal/username that relate to cleared users are also cleared so they do not reference deleted users."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update backend user registration/profile-creation logic so that after a reset (i.e., when there are zero user profiles), the first user who creates/completes a profile is assigned the Manager role automatically; all subsequent users are assigned the Assistant role by default.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "make it so the first user to log in is automatically assigned the manager role."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When the user profile store is empty, the next successful profile creation results in role = manager for that caller.",
+        "When at least one profile exists, any subsequent successful profile creation results in role = assistant for that caller.",
+        "The role assignment behavior works correctly immediately after executing the reset operation in REQ-1."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "If the application currently persists user/profile state across upgrades, add/adjust conditional migration logic to ensure the new reset mechanism and the first-user-manager role assignment remain correct after canister upgrades (no corrupted state; no trapped reads).",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Build"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Upgrading the canister preserves existing state unless the new explicit reset method is invoked.",
+        "After an upgrade, calling the reset method still clears user data and the next profile creation still becomes manager as specified."
       ]
     }
   ],
   "constraints": [
-    "Apply the change ONLY to the selected element (the header logo <img>).",
-    "Do not modify any frontend immutable paths listed in SYSTEM_CONTEXT."
+    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo; only add backend/migration.mo if state migration is required).",
+    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (immutable paths).",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Deploying/publishing the app live.",
-    "Changing the logo image file itself or generating new logo assets."
+    "Do not add a separate 'manager login' mechanism (Internet Identity remains the only authentication).",
+    "Do not add a UI button/screen for resetting users unless explicitly requested.",
+    "Do not introduce external databases or third-party auth providers."
   ],
   "imageRequirements": {
     "required": [],

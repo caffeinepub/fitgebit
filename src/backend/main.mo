@@ -13,9 +13,9 @@ import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Migration "migration";
 
-
-
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -754,10 +754,12 @@ actor {
       };
     };
 
+    let role = determineRole();
+
     let assistantProfile : UserProfile = {
       principal = caller;
       username;
-      role = determineRole();
+      role;
       language;
       initials;
       profilePicture = null;
@@ -937,6 +939,27 @@ actor {
     userProfiles.remove(assistantPrincipal);
     overtimeState.remove(assistantProfile.username);
     notificationState.remove(assistantPrincipal);
+    taskPreferences.remove(assistantProfile.username);
+  };
+
+  public shared ({ caller }) func resetUsersAndClearOrphanedState(clearTasks : Bool) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can reset users");
+    };
+
+    userProfiles.clear();
+    overtimeState.clear();
+    notificationState.clear();
+    taskPreferences.clear();
+
+    if (clearTasks) {
+      taskState.clear();
+      taskHistory.clear();
+      auditLog.clear();
+      nextTaskId := 0;
+      nextLogId := 0;
+      nextTaskHistoryId := 0;
+    };
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -967,9 +990,23 @@ actor {
       Runtime.trap("Unauthorized: Can only save your own profile");
     };
 
-    if (userProfiles.isEmpty()) {
-      if (profile.role != #manager) {
-        Runtime.trap("First user must be a manager");
+    let isFirstUser = userProfiles.isEmpty();
+    
+    if (isFirstUser and profile.role != #manager) {
+      Runtime.trap("First user must be a manager");
+    };
+
+    if (not isFirstUser and profile.role == #manager) {
+      let existingProfile = userProfiles.get(caller);
+      switch (existingProfile) {
+        case (?existing) {
+          if (existing.role != #manager) {
+            Runtime.trap("Cannot change role to manager");
+          };
+        };
+        case (null) {
+          Runtime.trap("Cannot assign manager role to new user when users already exist");
+        };
       };
     };
 
@@ -1012,7 +1049,6 @@ actor {
       Runtime.trap("Unauthorized: Only authenticated users can set preset avatars");
     };
 
-    // Check if avatar is unlocked for the user
     let unlockedAvatarCount = calculateUnlockedAvatars();
     if (avatarId >= unlockedAvatarCount) {
       Runtime.trap("Avatar is not unlocked yet");
@@ -1025,7 +1061,6 @@ actor {
   };
 
   func calculateUnlockedAvatars() : Nat {
-    // Calculate the number of unlocked avatars using 1717266587357012000 as starting point
     let startTimestamp : Nat = 1717266587357012000;
     let secondsPerMonth : Nat = 30 * 24 * 60 * 60;
     let monthsPassed : Nat = startTimestamp / secondsPerMonth;
@@ -1048,7 +1083,6 @@ actor {
     let unlockedAvatarCount = calculateUnlockedAvatars();
     let allAvatarsArray = avatars.values().toArray();
 
-    // Only include avatars with id less than unlockedAvatarCount
     let filteredAvatars = allAvatarsArray.filter(
       func(avatar) {
         avatar.id < unlockedAvatarCount;
@@ -1223,7 +1257,7 @@ actor {
     let lastCompleted = task.lastCompleted;
 
     if (lastCompleted == null) {
-      return ?true; // First completion is always on time
+      return ?true;
     };
 
     let frequency = task.frequency;
@@ -1289,9 +1323,7 @@ actor {
     };
 
     if (callerProfile.role == #manager) {
-      // Managers can edit any assistant's entries
     } else if (Text.equal(callerProfile.username, username)) {
-      // Assistants can edit their own entries
     } else {
       Runtime.trap("Unauthorized: Can only edit your own overtime entries");
     };
