@@ -43,6 +43,7 @@ export const TaskHistoryEntry = IDL.Record({
   'id' : IDL.Nat,
   'action' : AuditLogAction,
   'username' : IDL.Text,
+  'completedOnTime' : IDL.Opt(IDL.Bool),
   'summary' : IDL.Text,
   'taskId' : IDL.Nat,
   'userPrincipal' : IDL.Principal,
@@ -66,6 +67,32 @@ export const ToDoTask = IDL.Record({
   'completionTimestamp' : IDL.Opt(Time),
   'isPinned' : IDL.Bool,
 });
+export const AssistantTaskCompletionRecord = IDL.Record({
+  'completedOnTime' : IDL.Bool,
+  'taskTitle' : IDL.Text,
+  'taskId' : IDL.Nat,
+  'frequency' : TaskFrequency,
+  'completionTimestamp' : Time,
+});
+export const TaskPreference = IDL.Variant({
+  'hated' : IDL.Null,
+  'preferred' : IDL.Null,
+  'neutral' : IDL.Null,
+});
+export const AssistantTaskSummary = IDL.Record({
+  'dailyTasks' : IDL.Nat,
+  'totalTasks' : IDL.Nat,
+  'username' : IDL.Text,
+  'completedTasks' : IDL.Nat,
+  'taskPreferences' : IDL.Vec(IDL.Tuple(IDL.Nat, TaskPreference)),
+  'weeklyTasks' : IDL.Nat,
+  'monthlyTasks' : IDL.Nat,
+  'onTimeTasks' : IDL.Nat,
+});
+export const AssistantTaskHabits = IDL.Record({
+  'completions' : IDL.Vec(AssistantTaskCompletionRecord),
+  'summary' : AssistantTaskSummary,
+});
 export const AuditLogEntry = IDL.Record({
   'action' : AuditLogAction,
   'username' : IDL.Text,
@@ -86,11 +113,6 @@ export const OvertimeTotals = IDL.Record({
   'totalDays' : IDL.Nat,
   'totalMinutes' : IDL.Nat,
 });
-export const TaskPreference = IDL.Variant({
-  'hated' : IDL.Null,
-  'preferred' : IDL.Null,
-  'neutral' : IDL.Null,
-});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -110,6 +132,11 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getAllTasks' : IDL.Func([], [IDL.Vec(ToDoTask)], ['query']),
+  'getAssistantTaskHabits' : IDL.Func(
+      [IDL.Text],
+      [AssistantTaskHabits],
+      ['query'],
+    ),
   'getAuditLog' : IDL.Func([], [IDL.Vec(AuditLogEntry)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
@@ -191,6 +218,7 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Nat,
     'action' : AuditLogAction,
     'username' : IDL.Text,
+    'completedOnTime' : IDL.Opt(IDL.Bool),
     'summary' : IDL.Text,
     'taskId' : IDL.Nat,
     'userPrincipal' : IDL.Principal,
@@ -214,6 +242,32 @@ export const idlFactory = ({ IDL }) => {
     'completionTimestamp' : IDL.Opt(Time),
     'isPinned' : IDL.Bool,
   });
+  const AssistantTaskCompletionRecord = IDL.Record({
+    'completedOnTime' : IDL.Bool,
+    'taskTitle' : IDL.Text,
+    'taskId' : IDL.Nat,
+    'frequency' : TaskFrequency,
+    'completionTimestamp' : Time,
+  });
+  const TaskPreference = IDL.Variant({
+    'hated' : IDL.Null,
+    'preferred' : IDL.Null,
+    'neutral' : IDL.Null,
+  });
+  const AssistantTaskSummary = IDL.Record({
+    'dailyTasks' : IDL.Nat,
+    'totalTasks' : IDL.Nat,
+    'username' : IDL.Text,
+    'completedTasks' : IDL.Nat,
+    'taskPreferences' : IDL.Vec(IDL.Tuple(IDL.Nat, TaskPreference)),
+    'weeklyTasks' : IDL.Nat,
+    'monthlyTasks' : IDL.Nat,
+    'onTimeTasks' : IDL.Nat,
+  });
+  const AssistantTaskHabits = IDL.Record({
+    'completions' : IDL.Vec(AssistantTaskCompletionRecord),
+    'summary' : AssistantTaskSummary,
+  });
   const AuditLogEntry = IDL.Record({
     'action' : AuditLogAction,
     'username' : IDL.Text,
@@ -234,11 +288,6 @@ export const idlFactory = ({ IDL }) => {
     'totalDays' : IDL.Nat,
     'totalMinutes' : IDL.Nat,
   });
-  const TaskPreference = IDL.Variant({
-    'hated' : IDL.Null,
-    'preferred' : IDL.Null,
-    'neutral' : IDL.Null,
-  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -258,6 +307,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getAllTasks' : IDL.Func([], [IDL.Vec(ToDoTask)], ['query']),
+    'getAssistantTaskHabits' : IDL.Func(
+        [IDL.Text],
+        [AssistantTaskHabits],
+        ['query'],
+      ),
     'getAuditLog' : IDL.Func([], [IDL.Vec(AuditLogEntry)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),

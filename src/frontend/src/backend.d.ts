@@ -7,6 +7,17 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface AssistantTaskHabits {
+    completions: Array<AssistantTaskCompletionRecord>;
+    summary: AssistantTaskSummary;
+}
+export interface AssistantTaskCompletionRecord {
+    completedOnTime: boolean;
+    taskTitle: string;
+    taskId: bigint;
+    frequency: TaskFrequency;
+    completionTimestamp: Time;
+}
 export type Time = bigint;
 export interface OvertimeEntry {
     date: string;
@@ -14,6 +25,16 @@ export interface OvertimeEntry {
     comment: string;
     timestamp: Time;
     isAdd: boolean;
+}
+export interface AssistantTaskSummary {
+    dailyTasks: bigint;
+    totalTasks: bigint;
+    username: string;
+    completedTasks: bigint;
+    taskPreferences: Array<[bigint, TaskPreference]>;
+    weeklyTasks: bigint;
+    monthlyTasks: bigint;
+    onTimeTasks: bigint;
 }
 export interface OvertimeTotals {
     totalHours: bigint;
@@ -48,6 +69,7 @@ export interface TaskHistoryEntry {
     id: bigint;
     action: AuditLogAction;
     username: string;
+    completedOnTime?: boolean;
     summary: string;
     taskId: bigint;
     userPrincipal: Principal;
@@ -99,6 +121,7 @@ export interface backendInterface {
     getAllTaskHistory(): Promise<Array<TaskHistoryEntry>>;
     getAllTaskHistoryEntries(): Promise<Array<TaskHistoryEntry>>;
     getAllTasks(): Promise<Array<ToDoTask>>;
+    getAssistantTaskHabits(username: string): Promise<AssistantTaskHabits>;
     getAuditLog(): Promise<Array<AuditLogEntry>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole__1>;

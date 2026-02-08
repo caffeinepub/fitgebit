@@ -65,6 +65,10 @@ export default {
                     'accent-foreground': 'oklch(var(--sidebar-accent-foreground))',
                     border: 'oklch(var(--sidebar-border))',
                     ring: 'oklch(var(--sidebar-ring))'
+                },
+                overtime: {
+                    add: 'oklch(var(--overtime-add))',
+                    use: 'oklch(var(--overtime-use))'
                 }
             },
             borderRadius: {

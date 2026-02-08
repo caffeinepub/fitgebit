@@ -73,10 +73,10 @@ export default function ToDoTable({ tasks, onEdit, onMarkDone, onTogglePin, isLo
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Actions</TableHead>
                 <TableHead className="w-12"></TableHead>
                 <TableHead>Task</TableHead>
                 <TableHead>Last Completed</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -94,32 +94,6 @@ export default function ToDoTable({ tasks, onEdit, onMarkDone, onTogglePin, isLo
                       borderLeft: `4px solid ${frequencyColor}`,
                     }}
                   >
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(task);
-                          }}
-                        >
-                          <Edit className="mr-1 h-3 w-3" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onMarkDone(task);
-                          }}
-                        >
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
-                          Done
-                        </Button>
-                      </div>
-                    </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -194,6 +168,32 @@ export default function ToDoTable({ tasks, onEdit, onMarkDone, onTogglePin, isLo
                         {task.completedByUsername && (
                           <p className="text-xs text-muted-foreground">by {task.completedByUsername}</p>
                         )}
+                      </div>
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(task);
+                          }}
+                        >
+                          <Edit className="mr-1 h-3 w-3" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMarkDone(task);
+                          }}
+                        >
+                          <CheckCircle2 className="mr-1 h-3 w-3" />
+                          Done
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>

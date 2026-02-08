@@ -1,46 +1,38 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T22:15:09.968Z",
+  "generatedAt": "2026-02-08T00:11:29.366Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-30",
-        "summary": "Move the entire “Actions” column in the To-Do tasks table to be the leftmost column (header + all row cells), instead of being the rightmost column.",
+        "id": "REQ-46",
+        "summary": "Trigger a fresh rebuild and deployment of the latest FitGebit code (option 2), rather than publishing the already-deployed Draft Version 11 as-is.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/todo/ToDoTable.tsx"
+          "frontend/public/rebuild-trigger.txt",
+          "frontend/index.html"
         ],
         "matchedFiles": [
-          "frontend/src/components/todo/ToDoTable.tsx"
-        ]
-      },
-      {
-        "id": "REQ-31",
-        "summary": "Remove the date input example/helper paragraph under the overtime date input (delete it with no replacement).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/OvertimeForm.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/OvertimeForm.tsx"
+          "frontend/public/rebuild-trigger.txt",
+          "frontend/index.html"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/OvertimeForm.tsx",
-    "frontend/src/components/todo/ToDoTable.tsx",
+    "frontend/index.html",
+    "frontend/public/rebuild-trigger.txt",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

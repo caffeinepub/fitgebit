@@ -1,70 +1,38 @@
 {
   "kind": "build_request",
-  "title": "Move To-Do Actions column to far left and remove overtime date format example text",
+  "title": "Trigger a fresh rebuild and deployment (option 2)",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-30",
-      "text": "Move the entire “Actions” column in the To-Do tasks table to be the leftmost column (header + all row cells), instead of being the rightmost column.",
-      "target": "frontend",
+      "id": "REQ-46",
+      "text": "Trigger a fresh rebuild and deployment of the latest FitGebit code (option 2), rather than publishing the already-deployed Draft Version 11 as-is.",
+      "target": "unknown",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages-8"
         ],
         "quotes": [
-          "The actions column should be all the way on the left instead of the right side.",
-          "1. Yes"
+          "No do 2"
         ]
       },
       "acceptanceCriteria": [
-        "In the To-Do table header, the “Actions” <th> renders as the first (leftmost) column header.",
-        "For each To-Do table row, the cell containing the Edit/Done buttons renders as the first (leftmost) cell in that row.",
-        "All existing button behaviors remain unchanged (Edit opens edit dialog; Done opens mark-done dialog).",
-        "No other columns’ data/content is changed; only the column order is updated."
-      ]
-    },
-    {
-      "id": "REQ-31",
-      "text": "Remove the date input example/helper paragraph under the overtime date input (delete it with no replacement).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Remove the date input example",
-          "2. yes"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The helper text paragraph under the overtime Date field is no longer rendered.",
-        "The Date input field remains present and continues to validate DD-MM-YYYY as before.",
-        "No new helper text is added in place of the removed paragraph."
+        "A new build is produced from the current codebase (not reusing the previous Draft Version 11 artifact).",
+        "The newly built version is deployed successfully and is accessible to testers/users via the platform’s deployment URL.",
+        "If the platform distinguishes between draft and live, the rebuilt version is the one intended for production/live availability (not left as an unpublished draft).",
+        "No application features or user-facing UI text are changed as part of this request; this is a deployment action only."
       ]
     }
   ],
   "constraints": [
-    "Apply changes only to the two selected UI elements: (1) the helper paragraph under the overtime date field, and (2) the To-Do table “Actions” column (header + corresponding cells).",
-    "Do not edit any files under frontend/src/components/ui or any immutable paths listed in SYSTEM_CONTEXT.",
-    "Use English for any user-facing text."
+    "Do not change any application functionality; only perform the rebuild/deploy action requested.",
+    "Keep all user-facing text in English (no new UI copy changes are required for this deployment-only request)."
   ],
   "nonGoals": [
-    "Do not change backend APIs, task/overtime data models, or persistence.",
-    "Do not change validation rules or date formatting logic for overtime beyond removing the helper paragraph.",
-    "Do not redesign the To-Do table styling beyond what is necessary to support the column reorder."
+    "Implementing new FitGebit features or UI refinements.",
+    "Fixing unrelated issues (e.g., the previously mentioned black-screen crash) unless required to make the rebuild succeed."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

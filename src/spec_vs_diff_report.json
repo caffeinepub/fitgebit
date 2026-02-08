@@ -1,15 +1,42 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T22:15:09.965Z",
-  "summary": "REQ-30 and REQ-31 appear implemented: the To-Do table “Actions” header is now the first column and the corresponding row cell for the action buttons appears first; the overtime date helper/example paragraph under the Date input is no longer rendered, while date validation/placeholder remains DD-MM-YYYY.",
-  "missing_requirements": [],
-  "hallucinated_features": [],
-  "confidence": 0.74,
+  "generatedAt": "2026-02-08T00:11:29.362Z",
+  "summary": "REQ-46 asks for a fresh rebuild/deploy with no functional or user-facing changes. The diff adds a rebuild-trigger file and a build-trigger comment (which can force a new artifact), but it does not provide evidence of an actual deployment/live promotion. The diff also shows multiple modified source/metadata files beyond a minimal rebuild trigger, which appear unrelated to a deployment-only request.",
+  "missing_requirements": [
+    {
+      "id": "REQ-46",
+      "requirement": "The newly built version is deployed successfully and is accessible to testers/users via the platform’s deployment URL (and promoted to live/production if applicable).",
+      "reason": "The diff only shows repository file changes; there is no evidence of a completed deployment, a deployment URL, or draft-to-live promotion steps/artifacts.",
+      "evidence": [
+        "frontend/public/rebuild-trigger.txt",
+        "frontend/index.html"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Modified backend application code despite the request being deployment-only with no application functionality changes.",
+      "reason": "REQ-46 explicitly constrains changes to a rebuild/deploy action only; backend/main.mo is modified, which suggests implementation-level changes beyond a rebuild trigger (exact functional impact cannot be verified from truncated diff).",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "description": "Updated/added project documentation/metadata describing numerous product features (not required for a rebuild/deploy-only request).",
+      "reason": "Changing feature summaries/state tracking is not part of triggering a rebuild and deployment; it adds scope beyond REQ-46.",
+      "evidence": [
+        "project_state.json",
+        "frontend-file-summaries.txt"
+      ]
+    }
+  ],
+  "confidence": 0.62,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/OvertimeForm.tsx",
-    "frontend/src/components/todo/ToDoTable.tsx",
+    "frontend/index.html",
+    "frontend/public/rebuild-trigger.txt",
     "project_state.json"
   ]
 }

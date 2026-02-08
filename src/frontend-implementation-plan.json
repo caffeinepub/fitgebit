@@ -1,38 +1,27 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Reorder To-Do Actions column and remove overtime date helper text",
+  "title": "FitGebit fresh rebuild/deploy trigger (deployment-only)",
   "requirements": [
     {
-      "id": "REQ-30",
-      "summary": "Move the To-Do table “Actions” column (header + row cells) to the leftmost position.",
+      "id": "REQ-46",
+      "summary": "Trigger a fresh rebuild/deployment from the latest code without changing application behavior or UI copy.",
       "acceptanceCriteria": [
-        "In the To-Do table header, the “Actions” <th> renders as the first (leftmost) column header.",
-        "For each To-Do table row, the cell containing the Edit/Done buttons renders as the first (leftmost) cell in that row.",
-        "All existing button behaviors remain unchanged (Edit opens edit dialog; Done opens mark-done dialog).",
-        "No other columns’ data/content is changed; only the column order is updated."
+        "A new build is produced from the current codebase (not reusing the previous Draft Version 11 artifact).",
+        "The newly built version is deployed successfully and is accessible to testers/users via the platform’s deployment URL.",
+        "If the platform distinguishes between draft and live, the rebuilt version is the one intended for production/live availability (not left as an unpublished draft).",
+        "No application features or user-facing UI text are changed as part of this request; this is a deployment action only."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/todo/ToDoTable.tsx",
-          "operation": "modify",
-          "description": "Reorder the To-Do tasks table columns so the “Actions” header and its corresponding row cell (Edit/Done buttons) render first, before the existing pin and data columns, without changing button handlers/behavior or any other column content."
-        }
-      ]
-    },
-    {
-      "id": "REQ-31",
-      "summary": "Remove the helper/example paragraph rendered under the overtime Date input.",
-      "acceptanceCriteria": [
-        "The helper text paragraph under the overtime Date field is no longer rendered.",
-        "The Date input field remains present and continues to validate DD-MM-YYYY as before.",
-        "No new helper text is added in place of the removed paragraph."
-      ],
-      "file_operations": [
+          "path": "frontend/public/rebuild-trigger.txt",
+          "operation": "create",
+          "description": "Add a rebuild marker file (e.g., containing a timestamp or build-note) to ensure a new frontend artifact is produced; do not reference this file from the UI and do not add user-facing text."
+        },
         {
-          "path": "frontend/src/components/OvertimeForm.tsx",
+          "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Delete the date format example/helper paragraph under the overtime Date input while leaving the Date input, placeholder, and existing DD-MM-YYYY validation logic unchanged."
+          "description": "Add/adjust a non-rendered HTML comment noting the rebuild trigger (no changes to visible UI text, title, or functionality) to ensure the deployment pipeline detects a source change."
         }
       ]
     }

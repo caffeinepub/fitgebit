@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import ToDoTaskDialog from './ToDoTaskDialog';
 import MarkTaskDoneDialog from './MarkTaskDoneDialog';
 import ToDoTable from './ToDoTable';
-import { useGetAllTasks, useCreateTask, useUpdateTask, useMarkTaskDone, useSetTaskPinnedStatus } from '../../hooks/useQueries';
+import { useGetAllTasks, useCreateTask, useUpdateTask, useMarkTaskDone, useSetTaskPinnedStatus, useDeleteTask } from '../../hooks/useQueries';
 import type { ToDoTask, TaskFrequency } from '../../backend';
 import { TaskFrequency as TaskFrequencyEnum } from '../../backend';
 import { getFrequencyLabel, computeNextDueDate, computeUrgencyScore } from '../../utils/todoDates';
@@ -25,6 +25,7 @@ export default function ToDoSection() {
   const updateTaskMutation = useUpdateTask();
   const markTaskDoneMutation = useMarkTaskDone();
   const setTaskPinnedMutation = useSetTaskPinnedStatus();
+  const deleteTaskMutation = useDeleteTask();
 
   const handleCreateTask = async (data: {
     title: string;
@@ -62,6 +63,16 @@ export default function ToDoSection() {
     }
   };
 
+  const handleDeleteTask = async (taskId: bigint) => {
+    try {
+      await deleteTaskMutation.mutateAsync(taskId);
+      toast.success('Task deleted successfully');
+      setEditingTask(null);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete task');
+    }
+  };
+
   const handleMarkTaskDone = async (data: {
     evidencePhotoPath: string | null;
     completionComment: string | null;
@@ -89,12 +100,16 @@ export default function ToDoSection() {
     }
   };
 
-  // Filter and sort tasks
+  // Filter and sort tasks with safe string handling
   const filteredAndSortedTasks = tasks
     .filter((task) => {
+      const searchLower = searchQuery.toLowerCase();
+      const taskTitle = (task.title || '').toLowerCase();
+      const taskDescription = (task.description || '').toLowerCase();
+      
       const matchesSearch =
-        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.description.toLowerCase().includes(searchQuery.toLowerCase());
+        taskTitle.includes(searchLower) ||
+        taskDescription.includes(searchLower);
       const matchesFrequency = filterFrequency === 'all' || task.frequency === filterFrequency;
       return matchesSearch && matchesFrequency;
     })
@@ -107,10 +122,10 @@ export default function ToDoSection() {
     });
 
   return (
-    <>
+    <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <ListTodo className="h-5 w-5" />
@@ -124,8 +139,8 @@ export default function ToDoSection() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col gap-4 sm:flex-row">
+        <CardContent>
+          <div className="mb-4 flex flex-col gap-4 sm:flex-row">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -137,7 +152,7 @@ export default function ToDoSection() {
             </div>
             <Select value={filterFrequency} onValueChange={(value) => setFilterFrequency(value as 'all' | TaskFrequency)}>
               <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue />
+                <SelectValue placeholder="Filter by frequency" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Frequencies</SelectItem>
@@ -150,10 +165,10 @@ export default function ToDoSection() {
 
           <ToDoTable
             tasks={filteredAndSortedTasks}
-            onEdit={setEditingTask}
-            onMarkDone={setMarkingDoneTask}
-            onTogglePin={handleTogglePin}
             isLoading={tasksLoading}
+            onEdit={(task) => setEditingTask(task)}
+            onMarkDone={(task) => setMarkingDoneTask(task)}
+            onTogglePin={handleTogglePin}
           />
         </CardContent>
       </Card>
@@ -171,6 +186,8 @@ export default function ToDoSection() {
         onSubmit={handleUpdateTask}
         task={editingTask}
         isLoading={updateTaskMutation.isPending}
+        onDelete={handleDeleteTask}
+        isDeleting={deleteTaskMutation.isPending}
       />
 
       <MarkTaskDoneDialog
@@ -180,6 +197,6 @@ export default function ToDoSection() {
         task={markingDoneTask}
         isLoading={markTaskDoneMutation.isPending}
       />
-    </>
+    </div>
   );
 }

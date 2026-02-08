@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Search, ChevronLeft, ChevronRight, Plus, Minus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getOvertimeCellClass } from '../utils/overtimeStyles';
 
 interface OvertimeHistoryProps {
   entries: OvertimeEntry[];
@@ -123,7 +124,9 @@ export default function OvertimeHistory({ entries, isLoading }: OvertimeHistoryP
                         )}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatMinutes(Number(entry.minutes))}</TableCell>
+                    <TableCell className={getOvertimeCellClass(entry.isAdd)}>
+                      {formatMinutes(Number(entry.minutes))}
+                    </TableCell>
                     <TableCell className="max-w-xs truncate">
                       {entry.comment || '-'}
                     </TableCell>

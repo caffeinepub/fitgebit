@@ -1,68 +1,79 @@
+import { useEffect, useState } from 'react';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from './hooks/useQueries';
-import { ThemeProvider } from 'next-themes';
-import { Toaster } from '@/components/ui/sonner';
 import LoginPage from './pages/LoginPage';
 import ProfileSetupPage from './pages/ProfileSetupPage';
 import AssistantDashboard from './pages/AssistantDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
-import { Loader2 } from 'lucide-react';
+import { UserRole } from './backend';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
 
-export default function App() {
+function AppContent() {
   const { identity, isInitializing } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
 
   const isAuthenticated = !!identity;
 
-  // Show loading state while initializing or fetching profile
+  useEffect(() => {
+    if (isAuthenticated && !profileLoading && isFetched) {
+      setShowProfileSetup(userProfile === null);
+    }
+  }, [isAuthenticated, profileLoading, isFetched, userProfile]);
+
   if (isInitializing || (isAuthenticated && profileLoading)) {
     return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <div className="flex h-screen items-center justify-center bg-background">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Loading...</p>
-          </div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
-        <Toaster />
-      </ThemeProvider>
+      </div>
     );
   }
 
-  // Show login page if not authenticated
   if (!isAuthenticated) {
-    return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <LoginPage />
-        <Toaster />
-      </ThemeProvider>
-    );
+    return <LoginPage />;
   }
 
-  // Show profile setup if authenticated but no profile exists
-  const showProfileSetup = isAuthenticated && isFetched && userProfile === null;
   if (showProfileSetup) {
+    return <ProfileSetupPage />;
+  }
+
+  if (!userProfile) {
     return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <ProfileSetupPage />
-        <Toaster />
-      </ThemeProvider>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">Loading profile...</p>
+        </div>
+      </div>
     );
   }
 
-  // Show appropriate dashboard based on role
-  if (userProfile) {
-    return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        {userProfile.role === 'manager' ? (
-          <ManagerDashboard userProfile={userProfile} />
-        ) : (
-          <AssistantDashboard userProfile={userProfile} />
-        )}
-        <Toaster />
-      </ThemeProvider>
-    );
+  // Defensive role check: only render manager dashboard for managers
+  if (userProfile.role === UserRole.manager) {
+    return <ManagerDashboard userProfile={userProfile} />;
   }
 
-  return null;
+  // Defensive role check: only render assistant dashboard for assistants
+  if (userProfile.role === UserRole.assistant) {
+    return <AssistantDashboard userProfile={userProfile} />;
+  }
+
+  // Fallback for unknown roles
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <p className="text-sm text-destructive">Unknown user role. Please contact support.</p>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AppErrorBoundary>
+      <AppContent />
+    </AppErrorBoundary>
+  );
 }

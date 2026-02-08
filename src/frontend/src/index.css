@@ -48,6 +48,10 @@
         --frequency-monthly-low: 0.85 0.08 300;
         --frequency-monthly-medium: 0.75 0.12 300;
         --frequency-monthly-high: 0.65 0.18 300;
+        
+        /* Overtime cell colors - pastel red for add, pastel green for use */
+        --overtime-add: 0.88 0.10 15;
+        --overtime-use: 0.88 0.10 140;
     }
 
     .dark {
@@ -94,8 +98,14 @@
         --frequency-monthly-low: 0.45 0.10 300;
         --frequency-monthly-medium: 0.55 0.14 300;
         --frequency-monthly-high: 0.65 0.20 300;
+        
+        /* Overtime cell colors - darker theme */
+        --overtime-add: 0.35 0.12 15;
+        --overtime-use: 0.35 0.12 140;
     }
+}
 
+@layer base {
     * {
         @apply border-border;
     }

@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-move-the-entire-actions-column-in-the-to-do-tasks-table-to-be-the-leftmost-column-header-all-row-cells-instead-of-being-the-rightmost-column",
-      "featureTitle": "Move the entire “Actions” column in the To-Do tasks table to be the leftmost column (header + all row cells), instead of being the rightmost column.",
+      "featureId": "feature-trigger-a-fresh-rebuild-and-deployment-of-the-latest-fitgebit-code-option-2-rather-than-publishing-the-already-deployed-draft-version-11-as-is",
+      "featureTitle": "Trigger a fresh rebuild and deployment of the latest FitGebit code (option 2), rather than publishing the already-deployed Draft Version 11 as-is.",
       "files": [
-        "frontend/src/components/todo/ToDoTable.tsx"
+        "frontend/index.html",
+        "frontend/public/rebuild-trigger.txt"
       ],
       "components": [
         "authorization@4.0.0",
@@ -16,26 +17,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-30"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-remove-the-date-input-example-helper-paragraph-under-the-overtime-date-input-delete-it-with-no-replacement",
-      "featureTitle": "Remove the date input example/helper paragraph under the overtime date input (delete it with no replacement).",
-      "files": [
-        "frontend/src/components/OvertimeForm.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-31"
+        "REQ-46"
       ],
       "confidence": "high"
     }

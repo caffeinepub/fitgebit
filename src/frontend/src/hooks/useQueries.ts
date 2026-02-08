@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Language, OvertimeEntry, OvertimeTotals, UserProfile, ToDoTask, AuditLogEntry, TaskFrequency, TaskHistoryEntry, TaskPreference } from '../backend';
+import type { Language, OvertimeEntry, OvertimeTotals, UserProfile, ToDoTask, AuditLogEntry, TaskFrequency, TaskHistoryEntry, TaskPreference, AssistantTaskHabits } from '../backend';
 import { Principal } from '@dfinity/principal';
 
 // User Profile Queries
@@ -215,6 +215,22 @@ export function useUpdateTask() {
   });
 }
 
+export function useDeleteTask() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (taskId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      // @ts-ignore - Backend method will be added
+      return actor.deleteTask(taskId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allTasks'] });
+    },
+  });
+}
+
 export function useMarkTaskDone() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -313,5 +329,19 @@ export function useSetTaskPreference() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['taskPreferences', variables.assistantUsername] });
     },
+  });
+}
+
+// Assistant Task Habits (Manager only)
+export function useGetAssistantTaskHabits(username: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<AssistantTaskHabits>({
+    queryKey: ['assistantTaskHabits', username],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getAssistantTaskHabits(username);
+    },
+    enabled: !!actor && !isFetching && !!username,
   });
 }

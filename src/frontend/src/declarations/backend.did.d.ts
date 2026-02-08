@@ -10,6 +10,27 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AssistantTaskCompletionRecord {
+  'completedOnTime' : boolean,
+  'taskTitle' : string,
+  'taskId' : bigint,
+  'frequency' : TaskFrequency,
+  'completionTimestamp' : Time,
+}
+export interface AssistantTaskHabits {
+  'completions' : Array<AssistantTaskCompletionRecord>,
+  'summary' : AssistantTaskSummary,
+}
+export interface AssistantTaskSummary {
+  'dailyTasks' : bigint,
+  'totalTasks' : bigint,
+  'username' : string,
+  'completedTasks' : bigint,
+  'taskPreferences' : Array<[bigint, TaskPreference]>,
+  'weeklyTasks' : bigint,
+  'monthlyTasks' : bigint,
+  'onTimeTasks' : bigint,
+}
 export type AuditLogAction = { 'taskUpdated' : null } |
   { 'taskCreated' : null } |
   { 'taskMarkedDone' : null };
@@ -43,6 +64,7 @@ export interface TaskHistoryEntry {
   'id' : bigint,
   'action' : AuditLogAction,
   'username' : string,
+  'completedOnTime' : [] | [boolean],
   'summary' : string,
   'taskId' : bigint,
   'userPrincipal' : Principal,
@@ -91,6 +113,7 @@ export interface _SERVICE {
   'getAllTaskHistory' : ActorMethod<[], Array<TaskHistoryEntry>>,
   'getAllTaskHistoryEntries' : ActorMethod<[], Array<TaskHistoryEntry>>,
   'getAllTasks' : ActorMethod<[], Array<ToDoTask>>,
+  'getAssistantTaskHabits' : ActorMethod<[string], AssistantTaskHabits>,
   'getAuditLog' : ActorMethod<[], Array<AuditLogEntry>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,

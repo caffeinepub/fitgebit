@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 11,
+  "projectStateVersion": 21,
   "summary": "FitGebit app for a Belgian dental practice: Internet Identity auth with roles (Assistants/Manager), assistant overtime tracking (assistants enter minutes only; manager oversight/export), plus a shared collaborative to-do list with audit logging, notifications, multilingual UI, and enhanced task operations (frequency selection retained but due-day selection removed and existing due dates wiped; main list hides frequency column; recurrence rolls to next Monday with monthly to first Monday of next month; urgency remains frequency-based; pinned priority, real-time updates, compact/mobile-friendly UI, and per-task completion evidence via comments + photos with a user-visible task history ledger).",
   "architectural_notes": [
     "Use Internet Identity principals for authentication; store a per-principal unique username on first login.",
@@ -15,9 +15,10 @@
     "Remove due-date/due-day from user-facing To-do UI; wipe existing stored due dates."
   ],
   "known_issues": [
-    "Build/deploy pipeline failed with 'Our AI couldn't handle that request' when starting implementation; user requested rerun."
+    "Build/deploy pipeline failed with 'Our AI couldn't handle that request' when starting implementation; user requested rerun.",
+    "Draft preview shows a plain black screen after recent changes (app likely crashing on startup / dashboard render), user requested a fix."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-keep-the-application-name-and-branding-as-fitgebit-across-the-ui-login-profile-setup-header-and-dashboards-and-ensure-all-user-facing-text-is-in-english-while-retaining-language-selection-support-for-dutch-french-english-in-user-profiles",
@@ -242,6 +243,102 @@
         "REQ-31"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-fix-the-to-do-list-rendering-crash-that-causes-a-black-screen-by-making-the-search-filter-logic-resilient-to-missing-optional-task-fields-e-g-tasks-with-no-description-must-not-trigger-runtime-errors",
+      "title": "Fix the To-Do list rendering crash that causes a black screen by making the search/filter logic resilient to missing optional task fields (e.g., tasks with no description must not trigger runtime errors).",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-harden-the-task-create-edit-dialog-state-initialization-so-it-never-assigns-undefined-null-into-controlled-form-inputs-e-g-description-must-always-be-a-string",
+      "title": "Harden the task create/edit dialog state initialization so it never assigns undefined/null into controlled form inputs (e.g., description must always be a string).",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-application-level-react-error-boundary-that-prevents-a-full-black-screen-on-unexpected-runtime-errors-and-shows-a-simple-fallback-ui-with-a-reload-action",
+      "title": "Add an application-level React error boundary that prevents a full black screen on unexpected runtime errors and shows a simple fallback UI with a reload action.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-react-query-wiring-for-task-deletion-and-integrate-it-into-the-existing-to-do-state-management-so-a-user-can-delete-a-task-from-within-the-task-edit-flow-and-the-tasks-list-refreshes-correctly",
+      "title": "Add frontend React Query wiring for task deletion and integrate it into the existing to-do state management so a user can delete a task from within the task edit flow and the tasks list refreshes correctly.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-destructive-delete-action-to-the-task-edit-dialog-only-when-editing-an-existing-task-and-require-a-confirmation-step-before-the-task-is-deleted-all-user-facing-text-must-be-in-english",
+      "title": "Add a destructive \"Delete\" action to the task edit dialog (only when editing an existing task), and require a confirmation step before the task is deleted. All user-facing text must be in English.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-move-the-actions-column-in-the-to-do-tasks-table-back-to-its-original-position-on-the-far-right-header-all-row-cells-while-keeping-existing-click-behavior-row-click-opens-task-history-action-buttons-and-pin-button-must-not-trigger-row-click",
+      "title": "Move the “Actions” column in the To-Do tasks table back to its original position on the far right (header + all row cells), while keeping existing click behavior (row click opens task history; action buttons and pin button must not trigger row click).",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-consistent-overtime-type-color-coding-everywhere-overtime-entries-are-displayed-add-overtime-uses-a-pastel-red-style-and-use-overtime-uses-a-pastel-green-style-apply-the-styling-only-to-the-relevant-value-cells-not-entire-rows",
+      "title": "Add consistent overtime type color-coding everywhere overtime entries are displayed: “add overtime” uses a pastel red style and “use overtime” uses a pastel green style. Apply the styling only to the relevant value cells (not entire rows).",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-manager-dashboard-team-assistant-detail-view-so-that-when-a-manager-selects-an-assistant-the-detail-view-shows-in-addition-to-existing-overtime-totals-history-export-delete-1-the-assistant-s-task-completion-history-across-all-to-do-tasks-2-the-assistant-s-on-time-completion-frequency-rate-and-3-the-assistant-s-per-task-preference-aversion-indicators-preferred-hated-neutral-in-a-read-only-summary",
+      "title": "Extend the Manager Dashboard \"Team\" assistant detail view so that when a manager selects an assistant, the detail view shows (in addition to existing overtime totals/history/export/delete): (1) the assistant’s task completion history across all to-do tasks, (2) the assistant’s on-time completion frequency/rate, and (3) the assistant’s per-task preference/aversion indicators (Preferred / Hated / Neutral) in a read-only summary.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-and-frontend-data-wiring-to-fetch-and-display-the-new-assistant-task-habit-data-inside-assistantdetailview-with-loading-empty-and-error-states-consistent-with-existing-patterns-skeletons-toasts",
+      "title": "Add React Query hooks and frontend data wiring to fetch and display the new assistant task-habit data inside AssistantDetailView, with loading, empty, and error states consistent with existing patterns (Skeletons/toasts).",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-compute-on-time-status-for-assistant-task-completions-using-the-same-recurrence-schedule-rules-used-by-the-app-s-to-do-urgency-next-due-date-logic-workdays-mon-thu-daily-rolls-to-next-workday-weekly-rolls-to-next-monday-monthly-rolls-to-first-monday-of-next-month-and-apply-this-consistently-for-the-on-time-frequency-metric-shown-to-the-manager",
+      "title": "Compute \"on-time\" status for assistant task completions using the same recurrence schedule rules used by the app’s to-do urgency/next-due-date logic (workdays Mon–Thu; daily rolls to next workday; weekly rolls to next Monday; monthly rolls to first Monday of next month), and apply this consistently for the on-time frequency metric shown to the manager.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-role-based-access-control-and-data-leak-prevention-for-the-new-assistant-task-habit-manager-view-so-that-assistants-cannot-access-the-new-backend-apis-or-see-manager-only-task-preference-labels-for-themselves-or-others",
+      "title": "Ensure role-based access control and data-leak prevention for the new assistant task-habit manager view so that assistants cannot access the new backend APIs or see manager-only task preference labels for themselves or others.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-trigger-a-fresh-rebuild-and-deployment-of-the-latest-fitgebit-code-option-2-rather-than-publishing-the-already-deployed-draft-version-11-as-is",
+      "title": "Trigger a fresh rebuild and deployment of the latest FitGebit code (option 2), rather than publishing the already-deployed Draft Version 11 as-is.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -420,15 +517,57 @@
       "status": "pending"
     },
     {
-      "id": "AR-34",
-      "summary": "To-do table UI: move the Actions column (header + all cells) to the far left",
+      "id": "AR-35",
+      "summary": "Remove the date input example/helper text paragraph from the form UI (delete with no replacement)",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-35",
-      "summary": "Remove the date input example/helper text paragraph from the form UI (delete with no replacement)",
+      "id": "AR-36",
+      "summary": "Add ability to delete a task from the task edit dialog, with a confirmation prompt before deletion",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Add a backend API to delete a to-do task by taskId, including recording the deletion in both the manager audit log and the per-task history ledger, and enforcing that only authenticated users can delete tasks.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Implement automatic cleanup of legacy/malformed to-do task data so old tasks no longer cause startup crashes, and ensure cleanup is applied in a way that does not require the user to manually edit each legacy task.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Move the Actions column in the To-Do tasks table back to its original position on the far right (header + all row cells).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Color-code overtime values everywhere: \"add overtime\" cells pastel red and \"use overtime\" cells pastel green; apply only to the relevant value cells (not entire rows) across history lists and summary/total views.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Manager dashboard: click an assistant name to open an assistant detail view showing overtime totals + full overtime history, plus task-habit metrics (task completion history, on-time completion frequency, and preferred/hated/neutral task indicators).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Add backend support for manager-only retrieval of an assistant’s task-habit metrics, including: a list of the assistant’s task completion events (across all tasks), aggregate counts needed to compute on-time completion rate, and the assistant’s task preference states per task.",
+      "reqIds": [
+        "REQ-42"
+      ],
       "status": "pending"
     }
   ],

@@ -15,6 +15,8 @@ import Blob "mo:core/Blob";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+// Run migration on every upgrade
+
 
 actor {
   type Language = {
@@ -108,6 +110,7 @@ actor {
       summary : Text;
       evidencePhotoPath : ?Text;
       completionComment : ?Text;
+      completedOnTime : ?Bool;
     };
   };
   type TaskHistoryEntry = TaskHistoryEntry.TaskHistoryEntry;
@@ -188,6 +191,17 @@ actor {
     };
   };
 
+  func sanitizeTaskHistoryEntry(entry : TaskHistoryEntry, isManagerCaller : Bool) : TaskHistoryEntry {
+    if (isManagerCaller) {
+      entry
+    } else {
+      {
+        entry with
+        completedOnTime = null
+      };
+    };
+  };
+
   public shared ({ caller }) func createTask(title : Text, description : Text, frequency : TaskFrequency, isWeekly : Bool) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can create tasks");
@@ -242,6 +256,7 @@ actor {
       summary = "Task created: " # title;
       evidencePhotoPath = null;
       completionComment = null;
+      completedOnTime = null;
     };
 
     let currentTaskHistoryEntries = List.empty<TaskHistoryEntry>();
@@ -305,6 +320,7 @@ actor {
       summary = "Task updated: " # title;
       evidencePhotoPath = null;
       completionComment = null;
+      completedOnTime = null;
     };
 
     let currentTaskHistoryEntries = switch (taskHistory.get(taskId)) {
@@ -345,6 +361,8 @@ actor {
 
     taskState.add(taskId, updatedTask);
 
+    let completedOnTime = computeOnTimeCompletion(task);
+
     let taskHistoryEntry : TaskHistoryEntry = {
       id = nextTaskHistoryId;
       taskId;
@@ -355,6 +373,7 @@ actor {
       summary = "Task completed: " # task.title;
       evidencePhotoPath;
       completionComment;
+      completedOnTime;
     };
 
     let currentTaskHistoryEntries = switch (taskHistory.get(taskId)) {
@@ -529,11 +548,13 @@ actor {
       Runtime.trap("Unauthorized: Only authenticated users can view task history");
     };
 
+    let callerIsManager = isManager(caller);
+
     var allEntries = List.empty<TaskHistoryEntry>();
 
     for ((_, entries) in taskHistory.entries()) {
       for (entry in entries.values()) {
-        allEntries.add(entry);
+        allEntries.add(sanitizeTaskHistoryEntry(entry, callerIsManager));
       };
     };
 
@@ -621,9 +642,18 @@ actor {
       Runtime.trap("Unauthorized: Only authenticated users can view task history");
     };
 
+    let callerIsManager = isManager(caller);
+
     switch (taskHistory.get(taskId)) {
       case (null) { [] };
-      case (?entries) { entries.reverse().toArray() };
+      case (?entries) {
+        let sanitizedEntries = entries.map<TaskHistoryEntry, TaskHistoryEntry>(
+          func(entry) {
+            sanitizeTaskHistoryEntry(entry, callerIsManager)
+          }
+        );
+        sanitizedEntries.reverse().toArray();
+      };
     };
   };
 
@@ -631,6 +661,8 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can view task history");
     };
+
+    let callerIsManager = isManager(caller);
 
     let taskHistoryArray = taskHistory.toArray();
     if (taskHistoryArray.size() == 0) {
@@ -641,7 +673,7 @@ actor {
 
     for ((_, entries) in taskHistoryArray.values()) {
       for (entry in entries.values()) {
-        allEntries.add(entry);
+        allEntries.add(sanitizeTaskHistoryEntry(entry, callerIsManager));
       };
     };
 
@@ -937,6 +969,176 @@ actor {
     };
     let endCheck = bytes[bytes.size() - 4] == 0x49 and bytes[bytes.size() - 3] == 0x45 and bytes[bytes.size() - 2] == 0x4E and bytes[bytes.size() - 1] == 0x44;
     endCheck;
+  };
+
+  // New types and functions for on-time completion tracking
+  public type AssistantTaskSummary = {
+    username : Text;
+    totalTasks : Nat;
+    completedTasks : Nat;
+    onTimeTasks : Nat;
+    dailyTasks : Nat;
+    weeklyTasks : Nat;
+    monthlyTasks : Nat;
+    taskPreferences : [(Nat, TaskPreference)];
+  };
+
+  public type AssistantTaskCompletionRecord = {
+    taskId : Nat;
+    taskTitle : Text;
+    frequency : TaskFrequency;
+    completionTimestamp : Time.Time;
+    completedOnTime : Bool;
+  };
+
+  public type AssistantTaskHabits = {
+    summary : AssistantTaskSummary;
+    completions : [AssistantTaskCompletionRecord];
+  };
+
+  public shared query ({ caller }) func getAssistantTaskHabits(username : Text) : async AssistantTaskHabits {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can access this function");
+    };
+
+    if (not isManager(caller)) {
+      Runtime.trap("Unauthorized: Only managers can view assistant task habits");
+    };
+
+    let completions = getAssistantTaskCompletions(username);
+    let summary = getAssistantTaskSummary(username, completions);
+
+    {
+      summary;
+      completions;
+    };
+  };
+
+  func getAssistantTaskCompletions(username : Text) : [AssistantTaskCompletionRecord] {
+    let entries = List.empty<AssistantTaskCompletionRecord>();
+
+    for ((_, taskHistoryEntries) in taskHistory.entries()) {
+      for (entry in taskHistoryEntries.values()) {
+        if (entry.username == username and entry.action == #taskMarkedDone and entry.completedOnTime != null) {
+          entries.add({
+            taskId = entry.taskId;
+            taskTitle = getTaskTitle(entry.taskId);
+            frequency = getTaskFrequency(entry.taskId);
+            completionTimestamp = entry.timestamp;
+            completedOnTime = switch (entry.completedOnTime) {
+              case (?value) { value };
+              case (null) { false };
+            };
+          });
+        };
+      };
+    };
+
+    entries.toArray();
+  };
+
+  func getTaskTitle(taskId : Nat) : Text {
+    switch (taskState.get(taskId)) {
+      case (?task) { task.title };
+      case (null) { "" };
+    };
+  };
+
+  func getTaskFrequency(taskId : Nat) : TaskFrequency {
+    switch (taskState.get(taskId)) {
+      case (?task) { task.frequency };
+      case (null) { #daily };
+    };
+  };
+
+  func getAssistantTaskSummary(username : Text, completions : [AssistantTaskCompletionRecord]) : AssistantTaskSummary {
+    let dailyTasks = countTasksByFrequency(#daily);
+    let weeklyTasks = countTasksByFrequency(#weekly);
+    let monthlyTasks = countTasksByFrequency(#monthly);
+
+    let taskPreferencesArray = switch (taskPreferences.get(username)) {
+      case (null) { [] };
+      case (?prefs) { prefs.toArray() };
+    };
+
+    let (completedTasks, onTimeTasks) = completions.foldLeft(
+      (0, 0),
+      func((completed, onTime), record) {
+        let onTimeCount = if (record.completedOnTime) { onTime + 1 } else { onTime };
+        (completed + 1, onTimeCount);
+      },
+    );
+
+    {
+      username;
+      totalTasks = taskState.size();
+      completedTasks;
+      onTimeTasks;
+      dailyTasks;
+      weeklyTasks;
+      monthlyTasks;
+      taskPreferences = taskPreferencesArray;
+    };
+  };
+
+  func countTasksByFrequency(frequency : TaskFrequency) : Nat {
+    let tasks = taskState.toArray();
+    let filteredTasks = tasks.filter(
+      func((_, task)) {
+        task.frequency == frequency;
+      }
+    );
+    filteredTasks.size();
+  };
+
+  func computeOnTimeCompletion(task : ToDoTask) : ?Bool {
+    let lastCompleted = task.lastCompleted;
+
+    if (lastCompleted == null) {
+      return ?true; // First completion is always on time
+    };
+
+    let frequency = task.frequency;
+    let completionTime = switch (task.completionTimestamp) {
+      case (?timestamp) { timestamp };
+      case (null) { return null };
+    };
+
+    switch (frequency) {
+      case (#daily) { ?isOnTimeDaily(completionTime, lastCompleted) };
+      case (#weekly) { ?isOnTimeWeekly(completionTime, lastCompleted) };
+      case (#monthly) { ?isOnTimeMonthly(completionTime, lastCompleted) };
+    };
+  };
+
+  func isOnTimeDaily(completionTime : Time.Time, lastCompleted : ?Time.Time) : Bool {
+    let lastCompletionTime = switch (lastCompleted) {
+      case (?time) { time };
+      case (null) { return false };
+    };
+
+    let diff = completionTime - lastCompletionTime;
+    diff < 48 * 60 * 60 * 1_000_000_000;
+  };
+
+  func isOnTimeWeekly(completionTime : Time.Time, lastCompleted : ?Time.Time) : Bool {
+    let lastCompletionTime = switch (lastCompleted) {
+      case (?time) { time };
+      case (null) { return false };
+    };
+
+    let diff = completionTime - lastCompletionTime;
+    diff < 8 * 24 * 60 * 60 * 1_000_000_000;
+  };
+
+  func isOnTimeMonthly(completionTime : Time.Time, lastCompleted : ?Time.Time) : Bool {
+    let lastCompletionTime = switch (lastCompleted) {
+      case (?time) { time };
+      case (null) { return false };
+    };
+
+    let diff = completionTime - lastCompletionTime;
+    diff < 32 * 24 * 60 * 60 * 1_000_000_000;
   };
 };
 
