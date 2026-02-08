@@ -380,17 +380,28 @@ export function useRegisterAssistant() {
   return useMutation({
     mutationFn: async (data: { username: string; language: Language; initials: string; overtime: string }) => {
       if (!actor) throw new Error('Actor not available');
+      
       // Convert overtime to BigInt, default to 0 if empty
       const overtimeValue = data.overtime.trim() === '' ? BigInt(0) : BigInt(data.overtime.trim());
-      return actor.registerAssistant({
+      
+      const result = await actor.registerAssistant({
         username: data.username,
         language: data.language,
         initials: data.initials,
         overtime: overtimeValue,
       });
+
+      // Backend returns Bool - throw if false
+      if (!result) {
+        throw new Error('Registration failed. Please try again.');
+      }
+
+      return result;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    onSuccess: async () => {
+      // Invalidate and actively refetch the profile to ensure UI updates
+      await queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      await queryClient.refetchQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['assistants'] });
     },
   });

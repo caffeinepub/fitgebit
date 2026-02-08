@@ -256,7 +256,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     logOvertime(date: string, minutes: bigint, comment: string, isAdd: boolean): Promise<void>;
     markTaskDone(taskId: bigint, photoData: ExternalBlob | null, completionComment: string | null): Promise<void>;
-    registerAssistant(payload: AssistantRegistrationPayload): Promise<void>;
+    registerAssistant(payload: AssistantRegistrationPayload): Promise<boolean>;
     resetUsersAndClearOrphanedState(clearTasks: boolean): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setPresetAvatar(avatarId: bigint): Promise<Avatar>;
@@ -718,7 +718,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async registerAssistant(arg0: AssistantRegistrationPayload): Promise<void> {
+    async registerAssistant(arg0: AssistantRegistrationPayload): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.registerAssistant(to_candid_AssistantRegistrationPayload_n59(this._uploadFile, this._downloadFile, arg0));

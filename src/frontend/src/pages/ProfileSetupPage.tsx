@@ -55,9 +55,27 @@ export default function ProfileSetupPage() {
         initials: initials.trim().toUpperCase(),
         overtime: overtime.trim()
       });
+      // Success toast will show after profile loads
       toast.success('Profile created successfully! Loading your dashboard...');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create profile');
+      // Extract user-friendly error message from backend trap
+      let errorMessage = 'Failed to create profile';
+      
+      if (error.message) {
+        if (error.message.includes('already registered')) {
+          errorMessage = 'You already have a profile';
+        } else if (error.message.includes('Username already taken')) {
+          errorMessage = 'This username is already taken';
+        } else if (error.message.includes('Username') && error.message.includes('reserved')) {
+          errorMessage = 'This username is reserved';
+        } else if (error.message.includes('Unauthorized')) {
+          errorMessage = 'Authorization error. Please try logging in again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast.error(errorMessage);
     }
   };
 

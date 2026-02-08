@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Allow users to gain ManagerDashboard access during account creation by entering initials "YK" and an overtime value of 696969.
+**Goal:** Fix the profile setup/registration flow so first-time Internet Identity users can create a profile and be routed into the correct dashboard.
 
 **Planned changes:**
-- Add an "Overtime" numeric input to the profile setup (account creation) flow; include client-side numeric validation and allow it to be left empty.
-- Update the frontend registration submission to send overtime along with username, initials, and language; update related registration hook/type usage.
-- Update backend registration logic to assign the Manager role when initials == "YK" and overtime == 696969; otherwise keep existing role-default behavior.
+- Backend: adjust `registerAssistant` so first-time authenticated callers can register successfully, required state/permissions are initialized, and invalid inputs return explicit errors.
+- Backend: ensure a successfully created profile is persisted so `getCallerUserProfile` returns a non-null profile for that caller afterward.
+- Frontend: fix Profile Setup submit handling so “Create Profile” routes into the app on success, shows a clear error on failure, and re-enables the button after an error.
+- Frontend: after `useRegisterAssistant()` succeeds, refresh/refetch the current profile (or update cache) so the app stops rendering Profile Setup and renders the correct dashboard with a consistent loading transition.
 
-**User-visible outcome:** During signup, users can enter an optional overtime value; users who register with initials "YK" and overtime "696969" receive the Manager role and can access the ManagerDashboard.
+**User-visible outcome:** A new user can log in with Internet Identity, complete Profile Setup, click “Create Profile,” and reliably reach the assistant/manager dashboard without getting stuck; if registration fails, they see a clear error and can try again.

@@ -178,7 +178,7 @@ export interface _SERVICE {
     [bigint, [] | [ExternalBlob], [] | [string]],
     undefined
   >,
-  'registerAssistant' : ActorMethod<[AssistantRegistrationPayload], undefined>,
+  'registerAssistant' : ActorMethod<[AssistantRegistrationPayload], boolean>,
   'resetUsersAndClearOrphanedState' : ActorMethod<[boolean], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'setPresetAvatar' : ActorMethod<[bigint], Avatar>,

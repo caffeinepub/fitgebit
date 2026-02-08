@@ -1,24 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project to implement an account creation flow with an access rule that grants manager dashboard access when initials are set to YK and overtime is 696969.",
-  "architectural_notes": [
-    "Access control rule evaluated during account creation: initials == 'YK' AND overtime == 696969 => user granted manager dashboard access."
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [
+    "User cannot create a new account: can enter name initials and overtime but cannot proceed past that step."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-account-creation-profile-setup-flow-to-collect-an-overtime-numeric-input-at-registration-time-and-submit-it-along-with-username-initials-and-language",
-      "title": "Update the account creation (profile setup) flow to collect an \"Overtime\" numeric input at registration time and submit it along with username, initials, and language.",
+      "id": "feature-fix-the-profile-registration-flow-so-a-newly-authenticated-internet-identity-user-can-successfully-create-a-user-profile-from-the-profile-setup-page-and-then-proceed-into-the-app-assistant-or-manager-dashboard-as-applicable",
+      "title": "Fix the profile registration flow so a newly authenticated Internet Identity user can successfully create a user profile from the Profile Setup page and then proceed into the app (assistant or manager dashboard as applicable).",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-frontend-react-query-registration-hook-s-and-backend-interface-typings-so-the-registration-call-supports-passing-the-overtime-value-required-for-the-access-rule",
-      "title": "Update frontend React Query registration hook(s) and backend interface typings so the registration call supports passing the overtime value required for the access rule.",
+      "id": "feature-update-the-frontend-registration-success-handling-so-that-the-app-immediately-reflects-the-newly-created-profile-no-manual-refresh-required",
+      "title": "Update the frontend registration success handling so that the app immediately reflects the newly created profile (no manual refresh required).",
       "reqIds": [
         "REQ-3"
       ],
@@ -27,21 +27,15 @@
   ],
   "new_feature_requests": [
     {
-      "id": "AR-1",
-      "summary": "Implement manager dashboard access rule at account creation: if initials == 'YK' and overtime == 696969 then grant manager access",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Implement the manager-access rule in backend user registration: when creating a new user profile, if initials == \"YK\" and the provided overtime value == 696969, assign the user role as Manager so they can access the ManagerDashboard.",
+      "id": "AR-2",
+      "summary": "Ensure the backend `registerAssistant` call properly authorizes first-time users and initializes all required state so that subsequent authenticated calls function normally.",
       "reqIds": [
         "REQ-2"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Grant Manager dashboard access during account creation when initials=YK and overtime=696969",
+  "projectName": "Fix profile setup so new users can create an account and reach the dashboard",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T23:17:53.192Z",
+  "generatedAt": "2026-02-08T23:54:36.273Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,43 +12,49 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the account creation (profile setup) flow to collect an \"Overtime\" numeric input at registration time and submit it along with username, initials, and language.",
+        "summary": "Fix the profile registration flow so a newly authenticated Internet Identity user can successfully create a user profile from the Profile Setup page and then proceed into the app (assistant or manager dashboard as applicable).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/ProfileSetupPage.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/ProfileSetupPage.tsx",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/ProfileSetupPage.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/ProfileSetupPage.tsx",
+          "frontend/src/App.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Implement the manager-access rule in backend user registration: when creating a new user profile, if initials == \"YK\" and the provided overtime value == 696969, assign the user role as Manager so they can access the ManagerDashboard.",
+        "summary": "Ensure the backend `registerAssistant` call properly authorizes first-time users and initializes all required state so that subsequent authenticated calls function normally.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Update frontend React Query registration hook(s) and backend interface typings so the registration call supports passing the overtime value required for the access rule.",
+        "summary": "Update the frontend registration success handling so that the app immediately reflects the newly created profile (no manual refresh required).",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/backend.d.ts"
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/backend.d.ts"
+          "frontend/src/App.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
     "frontend/src/declarations/backend.did.d.ts",

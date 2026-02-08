@@ -163,7 +163,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     logOvertime(date: string, minutes: bigint, comment: string, isAdd: boolean): Promise<void>;
     markTaskDone(taskId: bigint, photoData: ExternalBlob | null, completionComment: string | null): Promise<void>;
-    registerAssistant(payload: AssistantRegistrationPayload): Promise<void>;
+    registerAssistant(payload: AssistantRegistrationPayload): Promise<boolean>;
     resetUsersAndClearOrphanedState(clearTasks: boolean): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setPresetAvatar(avatarId: bigint): Promise<Avatar>;

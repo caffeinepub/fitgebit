@@ -1,78 +1,86 @@
 {
   "kind": "build_request",
-  "title": "Grant Manager dashboard access during account creation when initials=YK and overtime=696969",
-  "priority": "normal",
+  "title": "Fix profile setup so new users can create an account and reach the dashboard",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the account creation (profile setup) flow to collect an \"Overtime\" numeric input at registration time and submit it along with username, initials, and language.",
-      "target": "frontend",
+      "text": "Fix the profile registration flow so a newly authenticated Internet Identity user can successfully create a user profile from the Profile Setup page and then proceed into the app (assistant or manager dashboard as applicable).",
+      "target": "both",
       "source": {
         "messageIds": [
-          "user-msg-build-scope"
+          "msg-1"
         ],
         "quotes": [
-          "Whenever he creates the account",
-          "A user can get access to the manager dashboard by setting their initials to YK and entering 696969 in overtime"
+          "Can't create new account. I can fill in the name initials and overtime but can't proceed"
         ]
       },
       "acceptanceCriteria": [
-        "ProfileSetupPage includes an additional input labeled \"Overtime\" that only accepts numbers (client-side validation).",
-        "Submitting ProfileSetupPage sends the overtime value together with username, initials, and language to the backend registration call.",
-        "If the overtime input is left empty, registration still succeeds using existing defaults."
+        "After logging in with Internet Identity and completing Profile Setup (username, initials, optional overtime, language), clicking “Create Profile” results in the user being routed into the app (not stuck on the Profile Setup page).",
+        "If profile creation fails, the UI shows a clear error (toast is acceptable) and the “Create Profile” button becomes clickable again (no permanent pending/disabled state).",
+        "The backend registration endpoint used by the frontend (`registerAssistant`) succeeds for a first-time user (no existing `UserProfile`) and persists the created profile so that subsequent calls to `getCallerUserProfile` return a non-null profile for that caller."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Implement the manager-access rule in backend user registration: when creating a new user profile, if initials == \"YK\" and the provided overtime value == 696969, assign the user role as Manager so they can access the ManagerDashboard.",
+      "text": "Ensure the backend `registerAssistant` call properly authorizes first-time users and initializes all required state so that subsequent authenticated calls function normally.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "user-msg-build-scope"
+          "msg-1"
         ],
         "quotes": [
-          "A user can get access to the manager dashboard by setting their initials to YK and entering 696969 in overtime",
-          "Yes",
-          "Just defining the access rule."
+          "Can't create new account. I can fill in the name initials and overtime but can't proceed"
         ]
       },
       "acceptanceCriteria": [
-        "When a new profile is created with initials exactly \"YK\" (after the frontend uppercases) and overtime exactly 696969, the stored user profile role is #manager.",
-        "When a new profile is created with any other initials and/or any other overtime value, the stored user profile role follows the existing role-default logic (e.g., Assistant by default and any existing special-case rules remain intact).",
-        "A user who meets the condition is routed to the ManagerDashboard on next profile fetch because their role is Manager."
+        "A first-time authenticated caller can call `registerAssistant` without hitting an authorization trap meant for already-registered users.",
+        "On successful registration, the caller is granted whatever permission/role is required so that normal app functions that check authorization (e.g., task/overtime APIs) do not immediately trap for the newly registered user.",
+        "Registration rejects invalid inputs with explicit errors (e.g., empty username, username too short, initials too long) rather than failing silently."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update frontend React Query registration hook(s) and backend interface typings so the registration call supports passing the overtime value required for the access rule.",
-      "target": "both",
+      "text": "Update the frontend registration success handling so that the app immediately reflects the newly created profile (no manual refresh required).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "user-msg-build-scope"
+          "msg-1"
         ],
         "quotes": [
-          "entering 696969 in overtime",
-          "Whenever he creates the account"
+          "Can't create new account. I can fill in the name initials and overtime but can't proceed"
         ]
       },
       "acceptanceCriteria": [
-        "The registration mutation used by ProfileSetupPage accepts an overtime value field and passes it to the backend actor method without type errors.",
-        "Frontend compiles with updated generated backend typings (or updated type usage) reflecting the new registration parameter(s)."
+        "After `useRegisterAssistant()` succeeds, the frontend triggers a reliable refresh of the current profile (e.g., refetch or cache update) so `App.tsx` stops rendering `ProfileSetupPage` and renders the correct dashboard.",
+        "The user sees a consistent loading state during the transition (no blank screen) and ends up on the dashboard within a short time after success."
       ]
     }
   ],
   "constraints": [
-    "Keep all Motoko logic in the single backend actor (backend/main.mo).",
-    "Do not edit files under frontend/src/components/ui or other immutablePaths listed in SYSTEM_CONTEXT; compose existing UI components instead.",
-    "Use English for any user-facing text."
+    "Do not modify files under `frontend/src/components/ui` (read-only UI components must be composed, not edited).",
+    "Do not edit immutable hook files: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`.",
+    "Backend must remain a single Motoko actor in `backend/main.mo`; only add `backend/migration.mo` if an existing persisted state schema must change."
   ],
   "nonGoals": [
-    "Do not add any additional authentication steps beyond the specified rule.",
-    "Do not change the contents or features of the ManagerDashboard; only control access via role assignment.",
-    "Do not implement real-time features (e.g., WebSockets) or third-party auth beyond Internet Identity."
+    "Adding new authentication providers (only Internet Identity).",
+    "Introducing external databases or services.",
+    "Adding new product features unrelated to fixing account creation (e.g., new dashboards, new task types)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [
+      "Use English for any user-facing text."
+    ],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

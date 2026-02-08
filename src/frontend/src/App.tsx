@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile, useGetUnlockedAvatars } from './hooks/useQueries';
 import LoginPage from './pages/LoginPage';
@@ -10,30 +10,15 @@ import { AppErrorBoundary } from './components/AppErrorBoundary';
 
 function AppContent() {
   const { identity, isInitializing } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched, refetch } = useGetCallerUserProfile();
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
 
   // Trigger early fetch of unlocked avatars to enable monthly unlock reveal
   useGetUnlockedAvatars();
 
   const isAuthenticated = !!identity;
 
-  useEffect(() => {
-    if (isAuthenticated && !profileLoading && isFetched) {
-      setShowProfileSetup(userProfile === null);
-    }
-  }, [isAuthenticated, profileLoading, isFetched, userProfile]);
-
-  // Refetch profile when transitioning from profile setup
-  useEffect(() => {
-    if (isAuthenticated && !showProfileSetup && !userProfile && isFetched) {
-      // Profile was just created, refetch to get the updated profile
-      const timer = setTimeout(() => {
-        refetch();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated, showProfileSetup, userProfile, isFetched, refetch]);
+  // Derive showProfileSetup directly from auth + profile state (no local state)
+  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
 
   if (isInitializing || (isAuthenticated && profileLoading)) {
     return (
@@ -54,6 +39,7 @@ function AppContent() {
     return <ProfileSetupPage />;
   }
 
+  // Show loading state while profile is being fetched after registration
   if (!userProfile) {
     return (
       <div className="flex min-h-screen items-center justify-center">

@@ -1,41 +1,51 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add Overtime field to profile setup and pass it through registration typing/hook",
+  "title": "Fix profile setup registration to enter dashboard",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Extend ProfileSetupPage registration form to collect an optional numeric Overtime value and submit it alongside username, initials, and language.",
+      "summary": "Fix Profile Setup submission so newly authenticated Internet Identity users can create a profile and proceed into the app with clear failure recovery.",
       "acceptanceCriteria": [
-        "ProfileSetupPage includes an additional input labeled \"Overtime\" that only accepts numbers (client-side validation).",
-        "Submitting ProfileSetupPage sends the overtime value together with username, initials, and language to the backend registration call.",
-        "If the overtime input is left empty, registration still succeeds using existing defaults."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ProfileSetupPage.tsx",
-          "operation": "modify",
-          "description": "Add an \"Overtime\" field to the profile setup form using existing UI components (do not modify files under frontend/src/components/ui). Enforce client-side numeric-only input/validation (e.g., empty allowed; otherwise digits only) and include the overtime value in the registration mutation payload along with trimmed username, uppercased initials, and selected language. Update any helper text/notes in this page to remain accurate after the registration rule change, while keeping all user-facing text in English."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Update the frontend registration React Query mutation and backend interface typings usage so registration supports passing overtime without type errors.",
-      "acceptanceCriteria": [
-        "The registration mutation used by ProfileSetupPage accepts an overtime value field and passes it to the backend actor method without type errors.",
-        "Frontend compiles with updated generated backend typings (or updated type usage) reflecting the new registration parameter(s)."
+        "After logging in with Internet Identity and completing Profile Setup (username, initials, optional overtime, language), clicking “Create Profile” results in the user being routed into the app (not stuck on the Profile Setup page).",
+        "If profile creation fails, the UI shows a clear error (toast is acceptable) and the “Create Profile” button becomes clickable again (no permanent pending/disabled state).",
+        "The backend registration endpoint used by the frontend (`registerAssistant`) succeeds for a first-time user (no existing `UserProfile`) and persists the created profile so that subsequent calls to `getCallerUserProfile` return a non-null profile for that caller."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update useRegisterAssistant to accept an additional optional overtime field from the UI and call the backend registration capability using the expected payload shape (username, initials, language, overtime). Convert the optional overtime input to BigInt safely (e.g., default to BigInt(0) when empty) to align with backend typing and to preserve successful registration when omitted."
+          "description": "Harden `useRegisterAssistant` so it treats a falsy/failed `registerAssistant` response as an error (throw with explicit message), and on success performs a reliable profile refresh by invalidating and actively refetching `currentUserProfile` (and any minimal dependent caches). This ensures the UI does not show a false success toast while remaining on Profile Setup. Use the authorization component’s guidance for handling auth-related traps/errors gracefully; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/backend.d.ts",
+          "path": "frontend/src/pages/ProfileSetupPage.tsx",
           "operation": "modify",
-          "description": "Update/align the frontend backend interface typings so the registerAssistant method signature matches how the frontend calls it (payload containing username, initials, language, and overtime) and the AssistantRegistrationPayload includes/reflects the overtime field type, ensuring the frontend compiles without type errors."
+          "description": "Update submit handling to: (1) only show success feedback when the registration mutation truly succeeded, (2) surface backend validation/auth errors clearly via English toasts, and (3) ensure the form can be resubmitted after failures (no lingering disabled state). Keep the existing optional overtime input behavior but ensure any conversion/validation error is shown as a toast and re-enables the button. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Remove/avoid stale local `showProfileSetup` state that can keep users stuck after registration; instead derive the Profile Setup visibility directly from auth + profile query state (per the authorization component’s “Preventing Profile Setup Modal Flash” pattern). Ensure that once `currentUserProfile` becomes non-null, the app renders the correct dashboard (assistant/manager) without requiring a manual refresh. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Make registration success immediately reflect the newly created profile in the UI with a consistent loading transition into the dashboard.",
+      "acceptanceCriteria": [
+        "After `useRegisterAssistant()` succeeds, the frontend triggers a reliable refresh of the current profile (e.g., refetch or cache update) so `App.tsx` stops rendering `ProfileSetupPage` and renders the correct dashboard.",
+        "The user sees a consistent loading state during the transition (no blank screen) and ends up on the dashboard within a short time after success."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Ensure registration success triggers an immediate, reliable refresh of `currentUserProfile` (not only a passive invalidation) so App state transitions away from Profile Setup quickly and deterministically. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Ensure the post-registration transition always renders an intentional loading state while `currentUserProfile` is being refetched (no blank screen), and that the rendering logic switches to the appropriate dashboard as soon as the profile data arrives. Align the derived `showProfileSetup` logic with the authorization component’s recommended gating to prevent UI flash and stuck states; verify the component's usage instructions before implementing."
         }
       ]
     }
