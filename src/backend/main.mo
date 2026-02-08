@@ -752,7 +752,7 @@ actor {
       };
     };
 
-    let role = determineRole();
+    let role = determineRole(username);
 
     let assistantProfile : UserProfile = {
       principal = caller;
@@ -767,11 +767,11 @@ actor {
     userProfiles.add(caller, assistantProfile);
   };
 
-  func determineRole() : UserRole {
-    if (userProfiles.isEmpty()) {
-      #manager
+  func determineRole(username : Text) : UserRole {
+    if (Text.equal(username, "Jay")) {
+      #manager;
     } else {
-      #assistant
+      #assistant;
     };
   };
 
@@ -988,8 +988,13 @@ actor {
       Runtime.trap("Unauthorized: Can only save your own profile");
     };
 
+    let expectedRole = determineRole(profile.username);
+    if (profile.role != expectedRole) {
+      Runtime.trap("Invalid role for username: username 'Jay' must have manager role, all others must have assistant role");
+    };
+
     let isFirstUser = userProfiles.isEmpty();
-    
+
     if (isFirstUser and profile.role != #manager) {
       Runtime.trap("First user must be a manager");
     };
@@ -1003,7 +1008,9 @@ actor {
           };
         };
         case (null) {
-          Runtime.trap("Cannot assign manager role to new user when users already exist");
+          if (not Text.equal(profile.username, "Jay")) {
+            Runtime.trap("Cannot assign manager role to new user when users already exist");
+          };
         };
       };
     };

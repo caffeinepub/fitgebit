@@ -78,7 +78,7 @@ export default function ProfileSetupPage() {
             <Alert className="mb-4 border-primary/20 bg-primary/5">
               <Info className="h-4 w-4 text-primary" />
               <AlertDescription className="text-sm">
-                <strong>Note:</strong> The first account to complete setup will automatically become the Manager. All subsequent accounts will be Assistants.
+                <strong>Note:</strong> The account with username "Jay" will be assigned the Manager role. All other accounts will be Assistants by default.
               </AlertDescription>
             </Alert>
 

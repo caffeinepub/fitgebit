@@ -1,6 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Implement backend wipe/reset operation and first-user manager assignment (frontend-only plan)",
-  "requirements": []
+  "title": "Update onboarding copy to reflect Jay-as-Manager role assignment",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "summary": "Update profile setup/onboarding text to state that the \"Jay\" account is always Manager and all other new accounts are Assistants by default.",
+      "acceptanceCriteria": [
+        "Profile setup page no longer claims \"the first account\" becomes Manager; instead it states that the \"Jay\" account will be Manager and all others will be Assistants.",
+        "All user-facing text for this change is in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ProfileSetupPage.tsx",
+          "operation": "modify",
+          "description": "Replace the current onboarding alert copy that says the \"first account\" becomes Manager with English text explaining that the account with username \"Jay\" will be the Manager and all other newly created accounts will be Assistants by default."
+        }
+      ]
+    }
+  ]
 }

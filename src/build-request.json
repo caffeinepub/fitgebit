@@ -1,77 +1,68 @@
 {
   "kind": "build_request",
-  "title": "Implement backend wipe/reset operation and first-user manager assignment",
+  "title": "Make user 'Jay' the permanent Manager and default all new users to Assistant",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a backend-only administrative wipe/reset operation that clears all stored application data and resets all ID counters so the canister returns to a fresh state.",
+      "text": "Update backend user profile creation/registration logic so that the account whose username/user ID equals \"Jay\" is always assigned the Manager role, and every other newly created user profile is assigned the Assistant role by default.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-8"
+          "msg-1"
         ],
         "quotes": [
-          "Build the wipe",
-          "Try again"
+          "I just want my account to be the manager and any new accounts to be assistants.",
+          "Jay is my user ID"
         ]
       },
       "acceptanceCriteria": [
-        "A new shared backend method exists to perform the wipe/reset and is callable only by an authorized admin (at minimum: an existing manager user).",
-        "The wipe/reset clears all in-memory/persisted state for: user profiles, tasks, audit logs, task history, avatars, task preferences, overtime entries, notifications, and any stored blobs tied to profile pictures/avatars/evidence photos (as supported by the blob-storage mixin).",
-        "All counters are reset to their initial values (including nextTaskId, nextLogId, nextAvatarId, nextTaskHistoryId).",
-        "After wipe/reset completes, querying tasks/audit log/task history returns empty results, and there are zero user profiles stored."
+        "When a new profile is created/registered with username \"Jay\", the stored role is Manager.",
+        "When a new profile is created/registered with any username other than \"Jay\", the stored role is Assistant.",
+        "If a profile already exists for username \"Jay\", it remains (or is corrected to) Manager on subsequent calls without creating duplicates.",
+        "Role assignment happens automatically during profile creation without any additional UI steps."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update backend user registration/profile-creation logic so that when there are zero stored user profiles (e.g., immediately after a wipe/reset), the first user who creates/completes a profile is automatically assigned the Manager role; all subsequent users default to Assistant role unless explicitly changed by existing logic.",
-      "target": "backend",
+      "text": "Ensure the frontend onboarding copy reflects the new role assignment rule: \"Jay\" is the Manager account, and all other new accounts will be Assistants by default.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "Build the wipe"
+          "Jay is my user ID",
+          "I just want my account to be the manager and any new accounts to be assistants."
         ]
       },
       "acceptanceCriteria": [
-        "When userProfiles is empty, creating the first profile results in role == #manager for that profile.",
-        "When userProfiles is non-empty, creating a new profile results in role == #assistant by default (unless existing code already sets it differently).",
-        "Manager-only backend routes continue to enforce manager authorization based on the stored profile role."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Ensure canister upgrades remain safe after adding the wipe/reset mechanism and first-user manager assignment by adding/adjusting conditional migration logic in the backend migration file so upgraded deployments do not trap and state remains consistent.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "Try again"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A backend migration file exists at backend/migration.mo and compiles with the project.",
-        "If any stable state is used/persisted across upgrades, migration handles schema/state changes needed for the wipe/reset and role assignment logic without trapping.",
-        "Post-upgrade, existing state (if present) remains readable and the app continues working; wipe/reset can still be invoked and fully clears state."
+        "Profile setup page no longer claims \"the first account\" becomes Manager; instead it states that the \"Jay\" account will be Manager and all others will be Assistants.",
+        "All user-facing text for this change is in English."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo; use backend/migration.mo only for upgrade handling as needed).",
-    "Do not modify any frontend files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files in frontend/src/components/ui.",
-    "Use English for any user-facing text."
+    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
+    "Do not edit any files under frontend/src/components/ui or any other paths listed as immutable in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Do not add a new frontend UI flow for triggering the wipe/reset unless explicitly requested.",
-    "Do not add third-party authentication or external database/storage systems."
+    "Implementing a UI to change managers or promote/demote users.",
+    "Adding third-party authentication beyond Internet Identity.",
+    "Adding external database/storage systems beyond the current canister state and existing blob storage mixin."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

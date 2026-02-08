@@ -1,35 +1,32 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T21:18:05.883Z",
+  "generatedAt": "2026-02-08T21:40:26.786Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 0,
+    "total": 2,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add a backend-only administrative wipe/reset operation that clears all stored application data and resets all ID counters so the canister returns to a fresh state.",
+        "summary": "Update backend user profile creation/registration logic so that the account whose username/user ID equals \"Jay\" is always assigned the Manager role, and every other newly created user profile is assigned the Assistant role by default.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Update backend user registration/profile-creation logic so that when there are zero stored user profiles (e.g., immediately after a wipe/reset), the first user who creates/completes a profile is automatically assigned the Manager role; all subsequent users default to Assistant role unless explicitly changed by existing logic.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Ensure canister upgrades remain safe after adding the wipe/reset mechanism and first-user manager assignment by adding/adjusting conditional migration logic in the backend migration file so upgraded deployments do not trap and state remains consistent.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Ensure the frontend onboarding copy reflects the new role assignment rule: \"Jay\" is the Manager account, and all other new accounts will be Assistants by default.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/ProfileSetupPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/ProfileSetupPage.tsx"
+        ]
       }
     ]
   },
@@ -39,13 +36,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/DangerZone.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/ManagerDashboard.tsx",
+    "frontend/src/pages/ProfileSetupPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

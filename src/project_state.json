@@ -1,48 +1,41 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Add role-based onboarding: set a specific existing account as permanent Manager and default all newly created accounts to Assistant to simplify login/role assignment.",
   "architectural_notes": [
-    "Add an administrative wipe/reset operation that clears all persistent Maps/collections and resets ID counters; ensure it is properly access-controlled and safe to run (ideally one-time or restricted)."
+    "Introduce user roles (Manager, Assistant) with default role = Assistant for newly created users; bootstrap a designated user ID (\"Jay\") as permanent Manager."
   ],
   "known_issues": [
-    "Previous attempt to build/deploy the wipe function failed (\"AI was unable to complete your request\"), requiring a retry."
+    "Current login/onboarding flow is too complex because there is no 'first user becomes manager' / default role assignment."
   ],
   "isFixRequest": true,
-  "existing_features": [],
+  "existing_features": [
+    {
+      "id": "feature-ensure-the-frontend-onboarding-copy-reflects-the-new-role-assignment-rule-jay-is-the-manager-account-and-all-other-new-accounts-will-be-assistants-by-default",
+      "title": "Ensure the frontend onboarding copy reflects the new role assignment rule: \"Jay\" is the Manager account, and all other new accounts will be Assistants by default.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    }
+  ],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Implement a wipe/reset function to clear all stored database data (profiles, tasks, logs/history, avatars, preferences) and reset counters",
+      "summary": "Implement role-based defaults: assign user ID \"Jay\" as permanent Manager and set all new accounts to Assistant by default",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Add a backend-only administrative wipe/reset operation that clears all stored application data and resets all ID counters so the canister returns to a fresh state.",
+      "summary": "Update backend user profile creation/registration logic so that the account whose username/user ID equals \"Jay\" is always assigned the Manager role, and every other newly created user profile is assigned the Assistant role by default.",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Update backend user registration/profile-creation logic so that when there are zero stored user profiles (e.g., immediately after a wipe/reset), the first user who creates/completes a profile is automatically assigned the Manager role; all subsequent users default to Assistant role unless explicitly changed by existing logic.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Ensure canister upgrades remain safe after adding the wipe/reset mechanism and first-user manager assignment by adding/adjusting conditional migration logic in the backend migration file so upgraded deployments do not trap and state remains consistent.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "status": "pending"
     }
   ],
-  "projectName": "Implement backend wipe/reset operation and first-user manager assignment",
+  "projectName": "Make user 'Jay' the permanent Manager and default all new users to Assistant",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

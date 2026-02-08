@@ -1,12 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Add a secure backend administrative wipe/reset operation, ensure the first user after a wipe becomes Manager automatically, and keep upgrades safe via migration handling.
+**Goal:** Make the user account with username "Jay" always be the Manager, and default all other newly created accounts to Assistant.
 
 **Planned changes:**
-- Add a backend-only admin wipe/reset method that clears all stored application state (users, tasks, logs/history, preferences, notifications, overtime, avatars) and any stored blobs, and resets all ID counters.
-- Restrict the wipe/reset method to authorized admins (at minimum, an existing Manager user).
-- Update backend profile creation so when there are zero stored user profiles, the first created profile is assigned the Manager role; subsequent profiles default to Assistant unless existing logic sets otherwise.
-- Add/adjust backend upgrade migration logic (backend/migration.mo) so upgrades do not trap and state remains consistent with the new wipe/reset and role-assignment behavior.
+- Update backend profile creation/registration logic so username "Jay" is assigned (and maintained/corrected as) Manager, while all other new users are assigned Assistant by default.
+- Update frontend onboarding/profile setup copy to state that "Jay" is the Manager account and all other new accounts will be Assistants by default (in English).
 
-**User-visible outcome:** After deployment, an authorized Manager can reset the canister to a fresh state; after a reset, the first user to create a profile becomes Manager automatically, and the app continues working safely across upgrades.
+**User-visible outcome:** During onboarding/profile creation, "Jay" will automatically be the Manager account and all other new users will automatically be Assistants, with the UI text reflecting this rule.
