@@ -1,20 +1,26 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Add role-based onboarding: set a specific existing account as permanent Manager and default all newly created accounts to Assistant to simplify login/role assignment.",
+  "summary": "Project to implement an account creation flow with an access rule that grants manager dashboard access when initials are set to YK and overtime is 696969.",
   "architectural_notes": [
-    "Introduce user roles (Manager, Assistant) with default role = Assistant for newly created users; bootstrap a designated user ID (\"Jay\") as permanent Manager."
+    "Access control rule evaluated during account creation: initials == 'YK' AND overtime == 696969 => user granted manager dashboard access."
   ],
-  "known_issues": [
-    "Current login/onboarding flow is too complex because there is no 'first user becomes manager' / default role assignment."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-ensure-the-frontend-onboarding-copy-reflects-the-new-role-assignment-rule-jay-is-the-manager-account-and-all-other-new-accounts-will-be-assistants-by-default",
-      "title": "Ensure the frontend onboarding copy reflects the new role assignment rule: \"Jay\" is the Manager account, and all other new accounts will be Assistants by default.",
+      "id": "feature-update-the-account-creation-profile-setup-flow-to-collect-an-overtime-numeric-input-at-registration-time-and-submit-it-along-with-username-initials-and-language",
+      "title": "Update the account creation (profile setup) flow to collect an \"Overtime\" numeric input at registration time and submit it along with username, initials, and language.",
       "reqIds": [
-        "REQ-2"
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-react-query-registration-hook-s-and-backend-interface-typings-so-the-registration-call-supports-passing-the-overtime-value-required-for-the-access-rule",
+      "title": "Update frontend React Query registration hook(s) and backend interface typings so the registration call supports passing the overtime value required for the access rule.",
+      "reqIds": [
+        "REQ-3"
       ],
       "version": 1
     }
@@ -22,20 +28,20 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Implement role-based defaults: assign user ID \"Jay\" as permanent Manager and set all new accounts to Assistant by default",
+      "summary": "Implement manager dashboard access rule at account creation: if initials == 'YK' and overtime == 696969 then grant manager access",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-2",
-      "summary": "Update backend user profile creation/registration logic so that the account whose username/user ID equals \"Jay\" is always assigned the Manager role, and every other newly created user profile is assigned the Assistant role by default.",
+      "id": "AR-3",
+      "summary": "Implement the manager-access rule in backend user registration: when creating a new user profile, if initials == \"YK\" and the provided overtime value == 696969, assign the user role as Manager so they can access the ManagerDashboard.",
       "reqIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Make user 'Jay' the permanent Manager and default all new users to Assistant",
+  "projectName": "Grant Manager dashboard access during account creation when initials=YK and overtime=696969",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

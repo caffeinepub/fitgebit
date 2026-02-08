@@ -78,6 +78,12 @@ export interface AssistantTaskSummary {
     monthlyTasks: bigint;
     onTimeTasks: bigint;
 }
+export interface AssistantRegistrationPayload {
+    username: string;
+    overtime: bigint;
+    initials: string;
+    language: Language;
+}
 export interface TaskHistoryEntry {
     id: bigint;
     action: AuditLogAction;
@@ -157,7 +163,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     logOvertime(date: string, minutes: bigint, comment: string, isAdd: boolean): Promise<void>;
     markTaskDone(taskId: bigint, photoData: ExternalBlob | null, completionComment: string | null): Promise<void>;
-    registerAssistant(username: string, language: Language, initials: string): Promise<void>;
+    registerAssistant(payload: AssistantRegistrationPayload): Promise<void>;
     resetUsersAndClearOrphanedState(clearTasks: boolean): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setPresetAvatar(avatarId: bigint): Promise<Avatar>;

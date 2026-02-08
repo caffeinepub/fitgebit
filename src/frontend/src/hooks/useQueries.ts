@@ -378,9 +378,16 @@ export function useRegisterAssistant() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { username: string; language: Language; initials: string }) => {
+    mutationFn: async (data: { username: string; language: Language; initials: string; overtime: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.registerAssistant(data.username, data.language, data.initials);
+      // Convert overtime to BigInt, default to 0 if empty
+      const overtimeValue = data.overtime.trim() === '' ? BigInt(0) : BigInt(data.overtime.trim());
+      return actor.registerAssistant({
+        username: data.username,
+        language: data.language,
+        initials: data.initials,
+        overtime: overtimeValue,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -467,15 +474,13 @@ export function useSetTaskPreference() {
       );
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['taskPreferences', variables.assistantUsername],
-      });
+      queryClient.invalidateQueries({ queryKey: ['taskPreferences', variables.assistantUsername] });
       queryClient.invalidateQueries({ queryKey: ['taskHabits', variables.assistantUsername] });
     },
   });
 }
 
-// Admin/Wipe Queries
+// Wipe Storage Mutation
 export function useWipeStorage() {
   const { actor } = useActor();
   const queryClient = useQueryClient();

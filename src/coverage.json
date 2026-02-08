@@ -1,31 +1,44 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T21:40:26.786Z",
+  "generatedAt": "2026-02-08T23:17:53.192Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update backend user profile creation/registration logic so that the account whose username/user ID equals \"Jay\" is always assigned the Manager role, and every other newly created user profile is assigned the Assistant role by default.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Ensure the frontend onboarding copy reflects the new role assignment rule: \"Jay\" is the Manager account, and all other new accounts will be Assistants by default.",
+        "summary": "Update the account creation (profile setup) flow to collect an \"Overtime\" numeric input at registration time and submit it along with username, initials, and language.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/pages/ProfileSetupPage.tsx"
         ],
         "matchedFiles": [
           "frontend/src/pages/ProfileSetupPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Implement the manager-access rule in backend user registration: when creating a new user profile, if initials == \"YK\" and the provided overtime value == 696969, assign the user role as Manager so they can access the ManagerDashboard.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Update frontend React Query registration hook(s) and backend interface typings so the registration call supports passing the overtime value required for the access rule.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/backend.d.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/backend.d.ts"
         ]
       }
     ]
@@ -36,6 +49,11 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/ProfileSetupPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",

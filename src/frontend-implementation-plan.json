@@ -1,20 +1,41 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Update onboarding copy to reflect Jay-as-Manager role assignment",
+  "title": "Add Overtime field to profile setup and pass it through registration typing/hook",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Update profile setup/onboarding text to state that the \"Jay\" account is always Manager and all other new accounts are Assistants by default.",
+      "id": "REQ-1",
+      "summary": "Extend ProfileSetupPage registration form to collect an optional numeric Overtime value and submit it alongside username, initials, and language.",
       "acceptanceCriteria": [
-        "Profile setup page no longer claims \"the first account\" becomes Manager; instead it states that the \"Jay\" account will be Manager and all others will be Assistants.",
-        "All user-facing text for this change is in English."
+        "ProfileSetupPage includes an additional input labeled \"Overtime\" that only accepts numbers (client-side validation).",
+        "Submitting ProfileSetupPage sends the overtime value together with username, initials, and language to the backend registration call.",
+        "If the overtime input is left empty, registration still succeeds using existing defaults."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/ProfileSetupPage.tsx",
           "operation": "modify",
-          "description": "Replace the current onboarding alert copy that says the \"first account\" becomes Manager with English text explaining that the account with username \"Jay\" will be the Manager and all other newly created accounts will be Assistants by default."
+          "description": "Add an \"Overtime\" field to the profile setup form using existing UI components (do not modify files under frontend/src/components/ui). Enforce client-side numeric-only input/validation (e.g., empty allowed; otherwise digits only) and include the overtime value in the registration mutation payload along with trimmed username, uppercased initials, and selected language. Update any helper text/notes in this page to remain accurate after the registration rule change, while keeping all user-facing text in English."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Update the frontend registration React Query mutation and backend interface typings usage so registration supports passing overtime without type errors.",
+      "acceptanceCriteria": [
+        "The registration mutation used by ProfileSetupPage accepts an overtime value field and passes it to the backend actor method without type errors.",
+        "Frontend compiles with updated generated backend typings (or updated type usage) reflecting the new registration parameter(s)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update useRegisterAssistant to accept an additional optional overtime field from the UI and call the backend registration capability using the expected payload shape (username, initials, language, overtime). Convert the optional overtime input to BigInt safely (e.g., default to BigInt(0) when empty) to align with backend typing and to preserve successful registration when omitted."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Update/align the frontend backend interface typings so the registerAssistant method signature matches how the frontend calls it (payload containing username, initials, language, and overtime) and the AssistantRegistrationPayload includes/reflects the overtime field type, ensuring the frontend compiles without type errors."
         }
       ]
     }

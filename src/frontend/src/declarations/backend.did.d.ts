@@ -10,6 +10,12 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AssistantRegistrationPayload {
+  'username' : string,
+  'overtime' : bigint,
+  'initials' : string,
+  'language' : Language,
+}
 export interface AssistantTaskCompletionRecord {
   'completedOnTime' : boolean,
   'taskTitle' : string,
@@ -172,7 +178,7 @@ export interface _SERVICE {
     [bigint, [] | [ExternalBlob], [] | [string]],
     undefined
   >,
-  'registerAssistant' : ActorMethod<[string, Language, string], undefined>,
+  'registerAssistant' : ActorMethod<[AssistantRegistrationPayload], undefined>,
   'resetUsersAndClearOrphanedState' : ActorMethod<[boolean], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'setPresetAvatar' : ActorMethod<[bigint], Avatar>,

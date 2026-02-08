@@ -1,52 +1,56 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T21:40:26.784Z",
-  "summary": "Frontend onboarding copy was updated to state that username \"Jay\" will be Manager and all others Assistants. The backend change for enforcing/correcting roles during profile creation cannot be verified from the provided truncated backend diff, and there are additional unrequested feature descriptions added to a frontend summaries file.",
+  "generatedAt": "2026-02-08T23:17:53.189Z",
+  "summary": "Frontend work shows an added overtime state, digit-only change handler, and submission including an overtime field. However, the diff summary does not provide direct evidence that the ProfileSetupPage renders a labeled Overtime input, that the registration hook/typings were updated end-to-end without type errors, or that the backend registration method accepts overtime and applies the YK+696969 manager role rule. The diff summary also indicates several unrelated UI/dashboard changes not requested.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Update backend user profile creation/registration logic so that username/user ID \"Jay\" is always assigned the Manager role (and corrected if already exists) and every other newly created user profile defaults to Assistant.",
-      "reason": "The backend diff shown is truncated and does not include any user registration/profile creation logic or any code that assigns/corrects roles based on username \"Jay\"; therefore the requirement cannot be confirmed as implemented from the provided evidence.",
+      "requirement": "ProfileSetupPage includes an additional input labeled \"Overtime\" that only accepts numbers (client-side validation).",
+      "reason": "While overtime state and digit-only validation handler are shown, the truncated snippet does not include the rendered form field/label for the Overtime input, so the AC cannot be verified from the diff evidence.",
+      "evidence": [
+        "frontend/src/pages/ProfileSetupPage.tsx (truncated; shows overtime state + handleOvertimeChange, but not the overtime <Label>/<Input> rendering)"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "Backend registration assigns role #manager when initials == \"YK\" and overtime == 696969; otherwise preserves existing default role logic.",
+      "reason": "backend/main.mo is truncated and the provided excerpt does not show the registration function signature change, overtime handling, or any role assignment logic tied to initials/overtime.",
       "evidence": [
         "backend/main.mo (truncated; no registration/role-assignment logic shown)"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Update frontend React Query registration hook(s) and backend interface typings so the registration call supports passing overtime without type errors.",
+      "reason": "The shown portion of useQueries.ts does not include the registration mutation/hook implementation, and the backend actor method signature/typings update is not evidenced in the provided backend snippet.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts (truncated before any useRegisterAssistant definition is shown)",
+        "backend/main.mo (truncated; no updated registration method signature shown)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added/mentioned a new \"wipeStorage\" mutation that clears cached data after execution.",
-      "reason": "Not requested by REQ-1/REQ-2 and appears only as an added description in the modified summaries file.",
+      "description": "ManagerDashboard modified to include a new Settings tab with a DangerZone component for system-wide dangerous operations.",
+      "reason": "The BuildRequest explicitly focuses on role assignment/access control and states not to change the contents or features of the ManagerDashboard; this is an unrequested feature change per the diff summary text.",
       "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend-file-summaries.txt (entry for \"frontend/src/pages/ManagerDashboard.tsx\")"
       ]
     },
     {
-      "description": "Added/mentioned a Manager Dashboard \"Settings\" tab containing a \"DangerZone\" component for system-wide dangerous operations.",
-      "reason": "Not requested by REQ-1/REQ-2 and appears only as an added description in the modified summaries file.",
+      "description": "Broad UI/theme and multiple component behavior changes (e.g., new OKLCH color system in index.css, header/logo changes, overtime history inline editing, charts/analytics changes).",
+      "reason": "These are not requested by REQ-1/2/3 and go beyond the specified scope (collect overtime at registration + backend rule + typings/hooks support).",
       "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Broad UI/feature changes described across many frontend components (theme/palette overhaul, overtime UI, analytics, charts, task date utilities, etc.).",
-      "reason": "These are not part of the BuildRequest and are introduced as additional feature descriptions in the modified summaries file, without being asked for.",
-      "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Project metadata/state tracking updates (new_feature_requests entries AR-1/AR-2/AR-3 marked pending).",
-      "reason": "Not part of REQ-1/REQ-2; appears as additional project tracking data rather than requested functionality.",
-      "evidence": [
-        "project_state.json"
+        "frontend-file-summaries.txt (entries for \"frontend/src/index.css\", \"frontend/src/components/Header.tsx\", \"frontend/src/components/OvertimeHistory.tsx\", \"frontend/src/components/OvertimeChart.tsx\", \"frontend/src/components/ManagerAnalytics.tsx\", etc.)"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.56,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/ProfileSetupPage.tsx",
     "project_state.json"
   ]

@@ -1,68 +1,78 @@
 {
   "kind": "build_request",
-  "title": "Make user 'Jay' the permanent Manager and default all new users to Assistant",
+  "title": "Grant Manager dashboard access during account creation when initials=YK and overtime=696969",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update backend user profile creation/registration logic so that the account whose username/user ID equals \"Jay\" is always assigned the Manager role, and every other newly created user profile is assigned the Assistant role by default.",
-      "target": "backend",
+      "text": "Update the account creation (profile setup) flow to collect an \"Overtime\" numeric input at registration time and submit it along with username, initials, and language.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "user-msg-build-scope"
         ],
         "quotes": [
-          "I just want my account to be the manager and any new accounts to be assistants.",
-          "Jay is my user ID"
+          "Whenever he creates the account",
+          "A user can get access to the manager dashboard by setting their initials to YK and entering 696969 in overtime"
         ]
       },
       "acceptanceCriteria": [
-        "When a new profile is created/registered with username \"Jay\", the stored role is Manager.",
-        "When a new profile is created/registered with any username other than \"Jay\", the stored role is Assistant.",
-        "If a profile already exists for username \"Jay\", it remains (or is corrected to) Manager on subsequent calls without creating duplicates.",
-        "Role assignment happens automatically during profile creation without any additional UI steps."
+        "ProfileSetupPage includes an additional input labeled \"Overtime\" that only accepts numbers (client-side validation).",
+        "Submitting ProfileSetupPage sends the overtime value together with username, initials, and language to the backend registration call.",
+        "If the overtime input is left empty, registration still succeeds using existing defaults."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure the frontend onboarding copy reflects the new role assignment rule: \"Jay\" is the Manager account, and all other new accounts will be Assistants by default.",
-      "target": "frontend",
+      "text": "Implement the manager-access rule in backend user registration: when creating a new user profile, if initials == \"YK\" and the provided overtime value == 696969, assign the user role as Manager so they can access the ManagerDashboard.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "user-msg-build-scope"
         ],
         "quotes": [
-          "Jay is my user ID",
-          "I just want my account to be the manager and any new accounts to be assistants."
+          "A user can get access to the manager dashboard by setting their initials to YK and entering 696969 in overtime",
+          "Yes",
+          "Just defining the access rule."
         ]
       },
       "acceptanceCriteria": [
-        "Profile setup page no longer claims \"the first account\" becomes Manager; instead it states that the \"Jay\" account will be Manager and all others will be Assistants.",
-        "All user-facing text for this change is in English."
+        "When a new profile is created with initials exactly \"YK\" (after the frontend uppercases) and overtime exactly 696969, the stored user profile role is #manager.",
+        "When a new profile is created with any other initials and/or any other overtime value, the stored user profile role follows the existing role-default logic (e.g., Assistant by default and any existing special-case rules remain intact).",
+        "A user who meets the condition is routed to the ManagerDashboard on next profile fetch because their role is Manager."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update frontend React Query registration hook(s) and backend interface typings so the registration call supports passing the overtime value required for the access rule.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "user-msg-build-scope"
+        ],
+        "quotes": [
+          "entering 696969 in overtime",
+          "Whenever he creates the account"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The registration mutation used by ProfileSetupPage accepts an overtime value field and passes it to the backend actor method without type errors.",
+        "Frontend compiles with updated generated backend typings (or updated type usage) reflecting the new registration parameter(s)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
-    "Do not edit any files under frontend/src/components/ui or any other paths listed as immutable in SYSTEM_CONTEXT."
+    "Keep all Motoko logic in the single backend actor (backend/main.mo).",
+    "Do not edit files under frontend/src/components/ui or other immutablePaths listed in SYSTEM_CONTEXT; compose existing UI components instead.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Implementing a UI to change managers or promote/demote users.",
-    "Adding third-party authentication beyond Internet Identity.",
-    "Adding external database/storage systems beyond the current canister state and existing blob storage mixin."
+    "Do not add any additional authentication steps beyond the specified rule.",
+    "Do not change the contents or features of the ManagerDashboard; only control access via role assignment.",
+    "Do not implement real-time features (e.g., WebSockets) or third-party auth beyond Internet Identity."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

@@ -164,6 +164,12 @@ export interface AssistantTaskSummary {
     monthlyTasks: bigint;
     onTimeTasks: bigint;
 }
+export interface AssistantRegistrationPayload {
+    username: string;
+    overtime: bigint;
+    initials: string;
+    language: Language;
+}
 export interface TaskHistoryEntry {
     id: bigint;
     action: AuditLogAction;
@@ -250,7 +256,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     logOvertime(date: string, minutes: bigint, comment: string, isAdd: boolean): Promise<void>;
     markTaskDone(taskId: bigint, photoData: ExternalBlob | null, completionComment: string | null): Promise<void>;
-    registerAssistant(username: string, language: Language, initials: string): Promise<void>;
+    registerAssistant(payload: AssistantRegistrationPayload): Promise<void>;
     resetUsersAndClearOrphanedState(clearTasks: boolean): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setPresetAvatar(avatarId: bigint): Promise<Avatar>;
@@ -261,7 +267,7 @@ export interface backendInterface {
     uploadProfilePicture(content: ExternalBlob): Promise<ExternalBlob>;
     wipeStorage(): Promise<void>;
 }
-import type { AssistantTaskCompletionRecord as _AssistantTaskCompletionRecord, AssistantTaskHabits as _AssistantTaskHabits, AssistantTaskSummary as _AssistantTaskSummary, AuditLogAction as _AuditLogAction, AuditLogEntry as _AuditLogEntry, Avatar as _Avatar, ExternalBlob as _ExternalBlob, Language as _Language, TaskFrequency as _TaskFrequency, TaskHistoryEntry as _TaskHistoryEntry, TaskPreference as _TaskPreference, Time as _Time, ToDoTask as _ToDoTask, UserProfile as _UserProfile, UserRole as _UserRole, UserRole__1 as _UserRole__1, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { AssistantRegistrationPayload as _AssistantRegistrationPayload, AssistantTaskCompletionRecord as _AssistantTaskCompletionRecord, AssistantTaskHabits as _AssistantTaskHabits, AssistantTaskSummary as _AssistantTaskSummary, AuditLogAction as _AuditLogAction, AuditLogEntry as _AuditLogEntry, Avatar as _Avatar, ExternalBlob as _ExternalBlob, Language as _Language, TaskFrequency as _TaskFrequency, TaskHistoryEntry as _TaskHistoryEntry, TaskPreference as _TaskPreference, Time as _Time, ToDoTask as _ToDoTask, UserProfile as _UserProfile, UserRole as _UserRole, UserRole__1 as _UserRole__1, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -712,17 +718,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async registerAssistant(arg0: string, arg1: Language, arg2: string): Promise<void> {
+    async registerAssistant(arg0: AssistantRegistrationPayload): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.registerAssistant(arg0, to_candid_Language_n59(this._uploadFile, this._downloadFile, arg1), arg2);
+                const result = await this.actor.registerAssistant(to_candid_AssistantRegistrationPayload_n59(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.registerAssistant(arg0, to_candid_Language_n59(this._uploadFile, this._downloadFile, arg1), arg2);
+            const result = await this.actor.registerAssistant(to_candid_AssistantRegistrationPayload_n59(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -743,14 +749,14 @@ export class Backend implements backendInterface {
     async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.saveCallerUserProfile(await to_candid_UserProfile_n61(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.saveCallerUserProfile(await to_candid_UserProfile_n63(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.saveCallerUserProfile(await to_candid_UserProfile_n61(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.saveCallerUserProfile(await to_candid_UserProfile_n63(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -785,14 +791,14 @@ export class Backend implements backendInterface {
     async setTaskPreference(arg0: string, arg1: bigint, arg2: TaskPreference): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.setTaskPreference(arg0, arg1, to_candid_TaskPreference_n65(this._uploadFile, this._downloadFile, arg2));
+                const result = await this.actor.setTaskPreference(arg0, arg1, to_candid_TaskPreference_n67(this._uploadFile, this._downloadFile, arg2));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.setTaskPreference(arg0, arg1, to_candid_TaskPreference_n65(this._uploadFile, this._downloadFile, arg2));
+            const result = await this.actor.setTaskPreference(arg0, arg1, to_candid_TaskPreference_n67(this._uploadFile, this._downloadFile, arg2));
             return result;
         }
     }
@@ -1244,26 +1250,29 @@ function from_candid_vec_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 function from_candid_vec_n49(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_AuditLogEntry>): Array<AuditLogEntry> {
     return value.map((x)=>from_candid_AuditLogEntry_n50(_uploadFile, _downloadFile, x));
 }
+function to_candid_AssistantRegistrationPayload_n59(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AssistantRegistrationPayload): _AssistantRegistrationPayload {
+    return to_candid_record_n60(_uploadFile, _downloadFile, value);
+}
 async function to_candid_ExternalBlob_n57(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
     return await _uploadFile(value);
 }
-function to_candid_Language_n59(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Language): _Language {
-    return to_candid_variant_n60(_uploadFile, _downloadFile, value);
+function to_candid_Language_n61(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Language): _Language {
+    return to_candid_variant_n62(_uploadFile, _downloadFile, value);
 }
 function to_candid_TaskFrequency_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TaskFrequency): _TaskFrequency {
     return to_candid_variant_n11(_uploadFile, _downloadFile, value);
 }
-function to_candid_TaskPreference_n65(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TaskPreference): _TaskPreference {
-    return to_candid_variant_n66(_uploadFile, _downloadFile, value);
+function to_candid_TaskPreference_n67(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TaskPreference): _TaskPreference {
+    return to_candid_variant_n68(_uploadFile, _downloadFile, value);
 }
-async function to_candid_UserProfile_n61(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserProfile): Promise<_UserProfile> {
-    return await to_candid_record_n62(_uploadFile, _downloadFile, value);
+async function to_candid_UserProfile_n63(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserProfile): Promise<_UserProfile> {
+    return await to_candid_record_n64(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole__1_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole__1): _UserRole__1 {
     return to_candid_variant_n9(_uploadFile, _downloadFile, value);
 }
-function to_candid_UserRole_n63(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
-    return to_candid_variant_n64(_uploadFile, _downloadFile, value);
+function to_candid_UserRole_n65(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
+    return to_candid_variant_n66(_uploadFile, _downloadFile, value);
 }
 function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation): __CaffeineStorageRefillInformation {
     return to_candid_record_n3(_uploadFile, _downloadFile, value);
@@ -1286,7 +1295,25 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
         proposed_top_up_amount: value.proposed_top_up_amount ? candid_some(value.proposed_top_up_amount) : candid_none()
     };
 }
-async function to_candid_record_n62(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n60(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    username: string;
+    overtime: bigint;
+    initials: string;
+    language: Language;
+}): {
+    username: string;
+    overtime: bigint;
+    initials: string;
+    language: _Language;
+} {
+    return {
+        username: value.username,
+        overtime: value.overtime,
+        initials: value.initials,
+        language: to_candid_Language_n61(_uploadFile, _downloadFile, value.language)
+    };
+}
+async function to_candid_record_n64(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     presetAvatarId?: bigint;
     principal: Principal;
     username: string;
@@ -1307,9 +1334,9 @@ async function to_candid_record_n62(_uploadFile: (file: ExternalBlob) => Promise
         presetAvatarId: value.presetAvatarId ? candid_some(value.presetAvatarId) : candid_none(),
         principal: value.principal,
         username: value.username,
-        role: to_candid_UserRole_n63(_uploadFile, _downloadFile, value.role),
+        role: to_candid_UserRole_n65(_uploadFile, _downloadFile, value.role),
         initials: value.initials,
-        language: to_candid_Language_n59(_uploadFile, _downloadFile, value.language),
+        language: to_candid_Language_n61(_uploadFile, _downloadFile, value.language),
         profilePicture: value.profilePicture ? candid_some(await to_candid_ExternalBlob_n57(_uploadFile, _downloadFile, value.profilePicture)) : candid_none()
     };
 }
@@ -1328,7 +1355,7 @@ function to_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint
         weekly: null
     } : value;
 }
-function to_candid_variant_n60(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Language): {
+function to_candid_variant_n62(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Language): {
     french: null;
 } | {
     dutch: null;
@@ -1343,7 +1370,7 @@ function to_candid_variant_n60(_uploadFile: (file: ExternalBlob) => Promise<Uint
         english: null
     } : value;
 }
-function to_candid_variant_n64(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
+function to_candid_variant_n66(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
     manager: null;
 } | {
     assistant: null;
@@ -1354,7 +1381,7 @@ function to_candid_variant_n64(_uploadFile: (file: ExternalBlob) => Promise<Uint
         assistant: null
     } : value;
 }
-function to_candid_variant_n66(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TaskPreference): {
+function to_candid_variant_n68(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TaskPreference): {
     hated: null;
 } | {
     preferred: null;

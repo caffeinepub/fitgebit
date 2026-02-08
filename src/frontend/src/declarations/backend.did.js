@@ -137,6 +137,12 @@ export const OvertimeTotals = IDL.Record({
   'totalDays' : IDL.Nat,
   'totalMinutes' : IDL.Nat,
 });
+export const AssistantRegistrationPayload = IDL.Record({
+  'username' : IDL.Text,
+  'overtime' : IDL.Nat,
+  'initials' : IDL.Text,
+  'language' : Language,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -223,7 +229,7 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
-  'registerAssistant' : IDL.Func([IDL.Text, Language, IDL.Text], [], []),
+  'registerAssistant' : IDL.Func([AssistantRegistrationPayload], [], []),
   'resetUsersAndClearOrphanedState' : IDL.Func([IDL.Bool], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'setPresetAvatar' : IDL.Func([IDL.Nat], [Avatar], []),
@@ -371,6 +377,12 @@ export const idlFactory = ({ IDL }) => {
     'totalDays' : IDL.Nat,
     'totalMinutes' : IDL.Nat,
   });
+  const AssistantRegistrationPayload = IDL.Record({
+    'username' : IDL.Text,
+    'overtime' : IDL.Nat,
+    'initials' : IDL.Text,
+    'language' : Language,
+  });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -457,7 +469,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
-    'registerAssistant' : IDL.Func([IDL.Text, Language, IDL.Text], [], []),
+    'registerAssistant' : IDL.Func([AssistantRegistrationPayload], [], []),
     'resetUsersAndClearOrphanedState' : IDL.Func([IDL.Bool], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'setPresetAvatar' : IDL.Func([IDL.Nat], [Avatar], []),

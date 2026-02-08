@@ -13,8 +13,17 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 export default function ProfileSetupPage() {
   const [username, setUsername] = useState('');
   const [initials, setInitials] = useState('');
+  const [overtime, setOvertime] = useState('');
   const [language, setLanguage] = useState<Language>('english' as Language);
   const registerMutation = useRegisterAssistant();
+
+  const handleOvertimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow empty or digits only
+    if (value === '' || /^\d+$/.test(value)) {
+      setOvertime(value);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +52,8 @@ export default function ProfileSetupPage() {
       await registerMutation.mutateAsync({ 
         username: username.trim(), 
         language,
-        initials: initials.trim().toUpperCase()
+        initials: initials.trim().toUpperCase(),
+        overtime: overtime.trim()
       });
       toast.success('Profile created successfully! Loading your dashboard...');
     } catch (error: any) {
@@ -78,7 +88,7 @@ export default function ProfileSetupPage() {
             <Alert className="mb-4 border-primary/20 bg-primary/5">
               <Info className="h-4 w-4 text-primary" />
               <AlertDescription className="text-sm">
-                <strong>Note:</strong> The account with username "Jay" will be assigned the Manager role. All other accounts will be Assistants by default.
+                <strong>Note:</strong> Access to the manager dashboard is granted based on your registration details.
               </AlertDescription>
             </Alert>
 
@@ -110,6 +120,22 @@ export default function ProfileSetupPage() {
                 />
                 <p className="text-xs text-muted-foreground">
                   Your initials will be shown when you complete tasks (max 4 characters)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="overtime">Overtime</Label>
+                <Input
+                  id="overtime"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Enter overtime value (optional)"
+                  value={overtime}
+                  onChange={handleOvertimeChange}
+                  disabled={registerMutation.isPending}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optional numeric value (leave empty if not applicable)
                 </p>
               </div>
 

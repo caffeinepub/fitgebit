@@ -1,10 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Make the user account with username "Jay" always be the Manager, and default all other newly created accounts to Assistant.
+**Goal:** Allow users to gain ManagerDashboard access during account creation by entering initials "YK" and an overtime value of 696969.
 
 **Planned changes:**
-- Update backend profile creation/registration logic so username "Jay" is assigned (and maintained/corrected as) Manager, while all other new users are assigned Assistant by default.
-- Update frontend onboarding/profile setup copy to state that "Jay" is the Manager account and all other new accounts will be Assistants by default (in English).
+- Add an "Overtime" numeric input to the profile setup (account creation) flow; include client-side numeric validation and allow it to be left empty.
+- Update the frontend registration submission to send overtime along with username, initials, and language; update related registration hook/type usage.
+- Update backend registration logic to assign the Manager role when initials == "YK" and overtime == 696969; otherwise keep existing role-default behavior.
 
-**User-visible outcome:** During onboarding/profile creation, "Jay" will automatically be the Manager account and all other new users will automatically be Assistants, with the UI text reflecting this rule.
+**User-visible outcome:** During signup, users can enter an optional overtime value; users who register with initials "YK" and overtime "696969" receive the Manager role and can access the ManagerDashboard.
