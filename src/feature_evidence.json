@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-promote-the-currently-reviewed-draft-build-to-the-live-production-deployment-so-end-users-load-this-version-by-default-i-e-the-live-canister-assets-and-backend-match-the-current-draft",
-      "featureTitle": "Promote the currently reviewed draft build to the live/production deployment so end users load this version by default (i.e., the live canister assets and backend match the current draft).",
+      "featureId": "feature-increase-the-size-of-the-selected-header-logo-image-at-xpath-html-1-body-1-div-1-div-1-header-1-div-1-div-1-img-1-to-double-its-current-rendered-size-by-updating-only-that-img-element-s-sizing-styles-classes-currently-tailwind-classname-h-8-w-8-in-frontend-src-components-header-tsx",
+      "featureTitle": "Increase the size of the selected header logo image at XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[1]/img[1] to double its current rendered size by updating only that <img> element’s sizing styles/classes (currently Tailwind className \"h-8 w-8\" in frontend/src/components/Header.tsx).",
       "files": [
-        "frontend/index.html",
-        "frontend/public/rebuild-trigger.txt"
+        "frontend/src/components/Header.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -14,29 +13,12 @@
         "shadcn-ui@1.0.0",
         "build-template-react@1.0.0",
         "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0"
       ],
       "testIds": [
         "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-as-part-of-go-live-ensure-the-deployed-ui-theme-defaults-are-not-in-an-unintended-extra-dim-dark-state-compared-to-the-version-the-user-just-approved",
-      "featureTitle": "As part of go-live, ensure the deployed UI theme defaults are not in an unintended extra-dim/dark state compared to the version the user just approved.",
-      "files": [
-        "frontend/src/App.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
       ],
       "confidence": "high"
     }

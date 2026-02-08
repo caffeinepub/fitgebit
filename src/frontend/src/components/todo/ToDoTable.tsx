@@ -9,6 +9,8 @@ import { getFrequencyLabel, computeNextDueDate, formatNextDueDate, getUrgencyLev
 import { useState } from 'react';
 import EvidenceImagePreviewDialog from './EvidenceImagePreviewDialog';
 import TaskLedgerDialog from './TaskLedgerDialog';
+import { getExternalBlobUrl } from '../../utils/externalBlobUrl';
+import TaskCompletionAttribution from './TaskCompletionAttribution';
 
 interface ToDoTableProps {
   tasks: ToDoTask[];
@@ -54,6 +56,17 @@ export default function ToDoTable({ tasks, onEdit, onMarkDone, onTogglePin, isLo
     };
 
     return baseColors[frequency][urgency];
+  };
+
+  const handleViewPhoto = async (task: ToDoTask) => {
+    if (!task.evidencePhoto) return;
+    
+    try {
+      const url = await getExternalBlobUrl(task.evidencePhoto);
+      setPreviewImage({ url, title: task.title });
+    } catch (error) {
+      console.error('Failed to load photo:', error);
+    }
   };
 
   if (tasks.length === 0) {
@@ -148,11 +161,11 @@ export default function ToDoTable({ tasks, onEdit, onMarkDone, onTogglePin, isLo
                             "{task.completionComment}"
                           </p>
                         )}
-                        {task.evidencePhotoPath && (
+                        {task.evidencePhoto && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setPreviewImage({ url: task.evidencePhotoPath!, title: task.title });
+                              handleViewPhoto(task);
                             }}
                             className="flex items-center gap-1 text-sm text-primary hover:underline"
                           >
@@ -165,8 +178,13 @@ export default function ToDoTable({ tasks, onEdit, onMarkDone, onTogglePin, isLo
                     <TableCell>
                       <div className="space-y-1">
                         <p className="text-sm">{formatTimestamp(task.lastCompleted)}</p>
-                        {task.completedByUsername && (
-                          <p className="text-xs text-muted-foreground">by {task.completedByUsername}</p>
+                        {task.completedBy && task.completedByUsername && (
+                          <p className="text-xs text-muted-foreground">
+                            <TaskCompletionAttribution
+                              completerPrincipal={task.completedBy}
+                              completerUsername={task.completedByUsername}
+                            />
+                          </p>
                         )}
                       </div>
                     </TableCell>

@@ -1,31 +1,36 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, ListTodo } from 'lucide-react';
-import { toast } from 'sonner';
+import { useGetAllTasks, useCreateTask, useUpdateTask, useDeleteTask, useMarkTaskDone, useSetTaskPinnedStatus } from '../../hooks/useQueries';
+import ToDoTable from './ToDoTable';
 import ToDoTaskDialog from './ToDoTaskDialog';
 import MarkTaskDoneDialog from './MarkTaskDoneDialog';
-import ToDoTable from './ToDoTable';
-import { useGetAllTasks, useCreateTask, useUpdateTask, useMarkTaskDone, useSetTaskPinnedStatus, useDeleteTask } from '../../hooks/useQueries';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Plus, Search } from 'lucide-react';
+import { toast } from 'sonner';
 import type { ToDoTask, TaskFrequency } from '../../backend';
-import { TaskFrequency as TaskFrequencyEnum } from '../../backend';
-import { getFrequencyLabel, computeNextDueDate, computeUrgencyScore } from '../../utils/todoDates';
+import { ExternalBlob } from '../../backend';
 
 export default function ToDoSection() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<ToDoTask | null>(null);
   const [markingDoneTask, setMarkingDoneTask] = useState<ToDoTask | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterFrequency, setFilterFrequency] = useState<'all' | TaskFrequency>('all');
 
-  const { data: tasks = [], isLoading: tasksLoading } = useGetAllTasks();
+  const { data: tasks = [], isLoading, refetch } = useGetAllTasks();
   const createTaskMutation = useCreateTask();
   const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
   const markTaskDoneMutation = useMarkTaskDone();
   const setTaskPinnedMutation = useSetTaskPinnedStatus();
-  const deleteTaskMutation = useDeleteTask();
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [refetch]);
 
   const handleCreateTask = async (data: {
     title: string;
@@ -36,9 +41,9 @@ export default function ToDoSection() {
     try {
       await createTaskMutation.mutateAsync(data);
       toast.success('Task created successfully');
+      setIsDialogOpen(false);
     } catch (error: any) {
       toast.error(error.message || 'Failed to create task');
-      throw error;
     }
   };
 
@@ -52,21 +57,22 @@ export default function ToDoSection() {
 
     try {
       await updateTaskMutation.mutateAsync({
-        taskId: editingTask.id,
+        taskId: Number(editingTask.id),
         ...data,
       });
       toast.success('Task updated successfully');
+      setIsDialogOpen(false);
       setEditingTask(null);
     } catch (error: any) {
       toast.error(error.message || 'Failed to update task');
-      throw error;
     }
   };
 
   const handleDeleteTask = async (taskId: bigint) => {
     try {
-      await deleteTaskMutation.mutateAsync(taskId);
+      await deleteTaskMutation.mutateAsync(Number(taskId));
       toast.success('Task deleted successfully');
+      setIsDialogOpen(false);
       setEditingTask(null);
     } catch (error: any) {
       toast.error(error.message || 'Failed to delete task');
@@ -74,129 +80,97 @@ export default function ToDoSection() {
   };
 
   const handleMarkTaskDone = async (data: {
-    evidencePhotoPath: string | null;
+    photoData: ExternalBlob | null;
+    photoFormat: string | null;
     completionComment: string | null;
   }) => {
     if (!markingDoneTask) return;
 
     try {
       await markTaskDoneMutation.mutateAsync({
-        taskId: markingDoneTask.id,
-        ...data,
+        taskId: Number(markingDoneTask.id),
+        photoData: data.photoData || undefined,
+        completionComment: data.completionComment || undefined,
       });
       toast.success('Task marked as done');
       setMarkingDoneTask(null);
     } catch (error: any) {
       toast.error(error.message || 'Failed to mark task as done');
-      throw error;
     }
   };
 
   const handleTogglePin = async (taskId: bigint, isPinned: boolean) => {
     try {
-      await setTaskPinnedMutation.mutateAsync({ taskId, isPinned });
+      await setTaskPinnedMutation.mutateAsync({ taskId: Number(taskId), isPinned });
     } catch (error: any) {
       toast.error(error.message || 'Failed to update pin status');
     }
   };
 
-  // Filter and sort tasks with safe string handling
-  const filteredAndSortedTasks = tasks
-    .filter((task) => {
-      const searchLower = searchQuery.toLowerCase();
-      const taskTitle = (task.title || '').toLowerCase();
-      const taskDescription = (task.description || '').toLowerCase();
-      
-      const matchesSearch =
-        taskTitle.includes(searchLower) ||
-        taskDescription.includes(searchLower);
-      const matchesFrequency = filterFrequency === 'all' || task.frequency === filterFrequency;
-      return matchesSearch && matchesFrequency;
-    })
-    .sort((a, b) => {
-      const nextDueA = computeNextDueDate(a.frequency, undefined, a.lastCompleted, a.createdAt);
-      const nextDueB = computeNextDueDate(b.frequency, undefined, b.lastCompleted, b.createdAt);
-      const urgencyA = computeUrgencyScore(a.frequency, nextDueA, a.isPinned);
-      const urgencyB = computeUrgencyScore(b.frequency, nextDueB, b.isPinned);
-      return urgencyB - urgencyA;
-    });
+  const handleEditTask = (task: ToDoTask) => {
+    setEditingTask(task);
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingTask(null);
+  };
+
+  const filteredTasks = tasks.filter((task) => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      task.title.toLowerCase().includes(term) ||
+      task.description.toLowerCase().includes(term)
+    );
+  });
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <ListTodo className="h-5 w-5" />
-                To-Do List
-              </CardTitle>
-              <CardDescription>Shared tasks for the team</CardDescription>
-            </div>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Task
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex flex-col gap-4 sm:flex-row">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search tasks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={filterFrequency} onValueChange={(value) => setFilterFrequency(value as 'all' | TaskFrequency)}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filter by frequency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Frequencies</SelectItem>
-                <SelectItem value={TaskFrequencyEnum.daily}>Daily</SelectItem>
-                <SelectItem value={TaskFrequencyEnum.weekly}>Weekly</SelectItem>
-                <SelectItem value={TaskFrequencyEnum.monthly}>Monthly</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <ToDoTable
-            tasks={filteredAndSortedTasks}
-            isLoading={tasksLoading}
-            onEdit={(task) => setEditingTask(task)}
-            onMarkDone={(task) => setMarkingDoneTask(task)}
-            onTogglePin={handleTogglePin}
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search tasks..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
           />
-        </CardContent>
-      </Card>
+        </div>
+        <Button onClick={() => setIsDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Task
+        </Button>
+      </div>
 
-      <ToDoTaskDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onSubmit={handleCreateTask}
-        isLoading={createTaskMutation.isPending}
+      <ToDoTable
+        tasks={filteredTasks}
+        isLoading={isLoading}
+        onEdit={handleEditTask}
+        onMarkDone={setMarkingDoneTask}
+        onTogglePin={handleTogglePin}
       />
 
       <ToDoTaskDialog
-        open={!!editingTask}
-        onOpenChange={(open) => !open && setEditingTask(null)}
-        onSubmit={handleUpdateTask}
-        task={editingTask}
-        isLoading={updateTaskMutation.isPending}
+        open={isDialogOpen}
+        onOpenChange={handleCloseDialog}
+        onSubmit={editingTask ? handleUpdateTask : handleCreateTask}
         onDelete={handleDeleteTask}
+        task={editingTask}
+        isLoading={createTaskMutation.isPending || updateTaskMutation.isPending}
         isDeleting={deleteTaskMutation.isPending}
       />
 
-      <MarkTaskDoneDialog
-        open={!!markingDoneTask}
-        onOpenChange={(open) => !open && setMarkingDoneTask(null)}
-        onSubmit={handleMarkTaskDone}
-        task={markingDoneTask}
-        isLoading={markTaskDoneMutation.isPending}
-      />
+      {markingDoneTask && (
+        <MarkTaskDoneDialog
+          open={!!markingDoneTask}
+          onOpenChange={(open) => !open && setMarkingDoneTask(null)}
+          onSubmit={handleMarkTaskDone}
+          task={markingDoneTask}
+          isLoading={markTaskDoneMutation.isPending}
+        />
+      )}
     </div>
   );
 }

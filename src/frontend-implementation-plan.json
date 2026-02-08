@@ -1,46 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Go-live promotion (frontend) and theme-default verification",
+  "title": "Double header logo size",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Ensure the live deployment serves the currently approved draft frontend build by triggering a fresh production asset build and avoiding any preview-only client behavior on default loads.",
+      "summary": "Double the rendered size of the FitGebit header logo by updating only the targeted <img> Tailwind sizing classes in Header.tsx.",
       "acceptanceCriteria": [
-        "The live (non-draft) deployment serves the same frontend and backend code as the currently reviewed draft version.",
-        "Users who open the app without any preview/draft URL are routed to this promoted version.",
-        "No user-facing text is introduced that is not in English as part of the go-live process."
+        "In the app header, the FitGebit logo image renders at 2x the previous width and height (e.g., from 32x32 to 64x64).",
+        "No other elements (spacing, other icons, avatars, buttons) are modified aside from any necessary layout accommodation caused by the larger logo.",
+        "The change is implemented in frontend/src/components/Header.tsx by adjusting the selected <img> element’s Tailwind size classes."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/rebuild-trigger.txt",
+          "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Bump the rebuild marker (timestamp/version) to force CI/CD to publish the approved draft frontend bundle as the live canister asset set."
-        },
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Update the build-trigger comment to align with the production promotion build so caches/CDN artifacts are refreshed to the approved draft version."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Ensure theme defaults on first load match the approved draft and do not start in an unintended extra-dim/dark mode, while keeping the existing theme toggle behavior intact.",
-      "acceptanceCriteria": [
-        "On a fresh load (new session, no persisted theme), the app does not render with an extra-dim/dark appearance inconsistent with the approved draft.",
-        "Theme toggle (if present) continues to work and does not force an unintended default on startup."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Add a startup theme normalization guard that, on fresh sessions with no persisted theme preference, ensures the document does not start in an unintended dark/extra-dim state (e.g., remove a stray 'dark' class). Preserve any existing persisted user choice so the current theme toggle behavior remains unchanged."
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Verify and, if needed, minimally adjust the base light/dark CSS variable tokens so default (non-persisted) rendering matches the approved draft (avoid overly dim background/foreground contrast)."
+          "description": "Update only the header logo <img> element’s Tailwind size classes from \"h-8 w-8\" to doubled dimensions (e.g., \"h-16 w-16\") to achieve a 2x rendered size, without changing any other elements or styles."
         }
       ]
     }

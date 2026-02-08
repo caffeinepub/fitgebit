@@ -1,32 +1,38 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Project aims to deploy an app to the Internet Computer (IC) for real-world use and needs guidance/assets adjustments (e.g., resizing visuals).",
   "architectural_notes": [
-    "Theme defaults should match Version 11 (avoid forcing dark/extra-dim mode on startup)."
+    "Target deployment platform: Internet Computer (IC); deployment expected via dfx workflow (frontend/backend canisters)."
   ],
   "known_issues": [],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-promote-the-currently-reviewed-draft-build-to-the-live-production-deployment-so-end-users-load-this-version-by-default-i-e-the-live-canister-assets-and-backend-match-the-current-draft",
-      "title": "Promote the currently reviewed draft build to the live/production deployment so end users load this version by default (i.e., the live canister assets and backend match the current draft).",
+      "id": "feature-increase-the-size-of-the-selected-header-logo-image-at-xpath-html-1-body-1-div-1-div-1-header-1-div-1-div-1-img-1-to-double-its-current-rendered-size-by-updating-only-that-img-element-s-sizing-styles-classes-currently-tailwind-classname-h-8-w-8-in-frontend-src-components-header-tsx",
+      "title": "Increase the size of the selected header logo image at XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[1]/img[1] to double its current rendered size by updating only that <img> element’s sizing styles/classes (currently Tailwind className \"h-8 w-8\" in frontend/src/components/Header.tsx).",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-as-part-of-go-live-ensure-the-deployed-ui-theme-defaults-are-not-in-an-unintended-extra-dim-dark-state-compared-to-the-version-the-user-just-approved",
-      "title": "As part of go-live, ensure the deployed UI theme defaults are not in an unintended extra-dim/dark state compared to the version the user just approved.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Promote current draft build to live production deployment",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Provide step-by-step deployment guidance for going live on the Internet Computer using dfx (frontend/backend/both).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Resize the selected image/visual asset to double its current size.",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Double the header logo size",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

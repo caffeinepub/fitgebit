@@ -8,13 +8,17 @@ import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Int "mo:core/Int";
 import Time "mo:core/Time";
-import Nat32 "mo:core/Nat32";
-import Blob "mo:core/Blob";
-
+import Nat "mo:core/Nat";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import MixinStorage "blob-storage/Mixin";
+import Storage "blob-storage/Storage";
+
+
 
 actor {
+  include MixinStorage();
+
   type Language = {
     #english;
     #dutch;
@@ -26,11 +30,21 @@ actor {
     #assistant;
   };
 
+  type Avatar = {
+    id : Nat;
+    name : Text;
+    blob : Storage.ExternalBlob;
+    description : Text;
+  };
+
   type UserProfile = {
     principal : Principal;
     username : Text;
     role : UserRole;
     language : Language;
+    initials : Text;
+    profilePicture : ?Storage.ExternalBlob;
+    presetAvatarId : ?Nat;
   };
 
   module TaskFrequency {
@@ -65,7 +79,7 @@ actor {
       completionTimestamp : ?Time.Time;
       createdAt : Time.Time;
       lastCompleted : ?Time.Time;
-      evidencePhotoPath : ?Text;
+      evidencePhoto : ?Storage.ExternalBlob;
       completionComment : ?Text;
     };
   };
@@ -102,9 +116,12 @@ actor {
       action : AuditLogAction;
       userPrincipal : Principal;
       username : Text;
+      userInitials : Text;
+      userProfilePicture : ?Storage.ExternalBlob;
+      userAvatar : ?Avatar;
       timestamp : Time.Time;
       summary : Text;
-      evidencePhotoPath : ?Text;
+      evidencePhoto : ?Storage.ExternalBlob;
       completionComment : ?Text;
       completedOnTime : ?Bool;
     };
@@ -165,10 +182,13 @@ actor {
   let overtimeState = Map.empty<Text, List.List<OvertimeEntry>>();
   let notificationState = Map.empty<Principal, Bool>();
   let taskHistory = Map.empty<Nat, List.List<TaskHistoryEntry>>();
-  let taskPreferences = Map.empty<Text, Map.Map<Nat, TaskPreference>>();
+  let avatars = Map.empty<Nat, Avatar>();
   var nextTaskId : Nat = 0;
   var nextLogId : Nat = 0;
+  var nextAvatarId : Nat = 0;
   var nextTaskHistoryId : Nat = 0;
+  let taskPreferences = Map.empty<Text, Map.Map<Nat, TaskPreference>>();
+  let hiddenAvatarIds = List.empty<Nat>();
 
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -194,6 +214,30 @@ actor {
       {
         entry with
         completedOnTime = null
+      };
+    };
+  };
+
+  func findProfileByUsername(username : Text) : ?UserProfile {
+    for ((_, profile) in userProfiles.entries()) {
+      if (Text.equal(profile.username, username)) {
+        return ?profile;
+      };
+    };
+    null;
+  };
+
+  func getUserDisplayInfo(principal : Principal) : (Text, ?Storage.ExternalBlob, ?Avatar) {
+    switch (userProfiles.get(principal)) {
+      case (null) { ("", null, null) };
+      case (?profile) {
+        let avatar = switch (profile.presetAvatarId) {
+          case (?avatarId) {
+            avatars.get(avatarId);
+          };
+          case (null) { null };
+        };
+        (profile.initials, profile.profilePicture, avatar);
       };
     };
   };
@@ -225,7 +269,7 @@ actor {
       createdAt = Time.now();
       lastCompleted = null;
       isPinned = false;
-      evidencePhotoPath = null;
+      evidencePhoto = null;
       completionComment = null;
     };
 
@@ -242,15 +286,20 @@ actor {
 
     auditLog.add(nextLogId, logEntry);
 
+    let (userInitials, userProfilePicture, userAvatar) = getUserDisplayInfo(caller);
+
     let taskHistoryEntry : TaskHistoryEntry = {
       id = nextTaskHistoryId;
       taskId = nextTaskId;
       action = #taskCreated;
       userPrincipal = caller;
       username = callerUsername;
+      userInitials;
+      userProfilePicture;
+      userAvatar;
       timestamp = Time.now();
       summary = "Task created: " # title;
-      evidencePhotoPath = null;
+      evidencePhoto = null;
       completionComment = null;
       completedOnTime = null;
     };
@@ -306,15 +355,20 @@ actor {
 
     auditLog.add(nextLogId, logEntry);
 
+    let (userInitials, userProfilePicture, userAvatar) = getUserDisplayInfo(caller);
+
     let taskHistoryEntry : TaskHistoryEntry = {
       id = nextTaskHistoryId;
       taskId;
       action = #taskUpdated;
       userPrincipal = caller;
       username = callerUsername;
+      userInitials;
+      userProfilePicture;
+      userAvatar;
       timestamp = Time.now();
       summary = "Task updated: " # title;
-      evidencePhotoPath = null;
+      evidencePhoto = null;
       completionComment = null;
       completedOnTime = null;
     };
@@ -330,7 +384,7 @@ actor {
     nextTaskHistoryId += 1;
   };
 
-  public shared ({ caller }) func markTaskDone(taskId : Nat, evidencePhotoPath : ?Text, completionComment : ?Text) : async () {
+  public shared ({ caller }) func markTaskDone(taskId : Nat, photoData : ?Storage.ExternalBlob, completionComment : ?Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can mark tasks as done");
     };
@@ -351,7 +405,7 @@ actor {
       completedByUsername = ?callerUsername;
       completionTimestamp = ?Time.now();
       lastCompleted = ?Time.now();
-      evidencePhotoPath;
+      evidencePhoto = photoData;
       completionComment;
     };
 
@@ -359,15 +413,20 @@ actor {
 
     let completedOnTime = computeOnTimeCompletion(task);
 
+    let (userInitials, userProfilePicture, userAvatar) = getUserDisplayInfo(caller);
+
     let taskHistoryEntry : TaskHistoryEntry = {
       id = nextTaskHistoryId;
       taskId;
       action = #taskMarkedDone;
       userPrincipal = caller;
       username = callerUsername;
+      userInitials;
+      userProfilePicture;
+      userAvatar;
       timestamp = Time.now();
       summary = "Task completed: " # task.title;
-      evidencePhotoPath;
+      evidencePhoto = photoData;
       completionComment;
       completedOnTime;
     };
@@ -610,7 +669,7 @@ actor {
       return List.empty<TaskHistoryEntry>();
     };
 
-    let sliceSize = end - start;
+    let sliceSize = if (end > start) { end - start } else { 0 };
     if (sliceSize == 0) {
       return List.empty<TaskHistoryEntry>();
     };
@@ -676,7 +735,7 @@ actor {
     allEntries.reverse().toArray();
   };
 
-  public shared ({ caller }) func registerAssistant(username : Text, language : Language) : async () {
+  public shared ({ caller }) func registerAssistant(username : Text, language : Language, initials : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can register");
     };
@@ -698,11 +757,22 @@ actor {
     let assistantProfile : UserProfile = {
       principal = caller;
       username;
-      role = #assistant;
+      role = determineRole();
       language;
+      initials;
+      profilePicture = null;
+      presetAvatarId = null;
     };
 
     userProfiles.add(caller, assistantProfile);
+  };
+
+  func determineRole() : UserRole {
+    if (userProfiles.isEmpty()) {
+      #manager
+    } else {
+      #assistant
+    };
   };
 
   public shared ({ caller }) func logOvertime(date : Text, minutes : Nat, comment : Text, isAdd : Bool) : async () {
@@ -867,7 +937,6 @@ actor {
     userProfiles.remove(assistantPrincipal);
     overtimeState.remove(assistantProfile.username);
     notificationState.remove(assistantPrincipal);
-    taskPreferences.remove(assistantProfile.username);
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -898,6 +967,16 @@ actor {
       Runtime.trap("Unauthorized: Can only save your own profile");
     };
 
+    if (userProfiles.isEmpty()) {
+      if (profile.role != #manager) {
+        Runtime.trap("First user must be a manager");
+      };
+    };
+
+    if (Text.equal(profile.username, "manager")) {
+      Runtime.trap("Username 'manager' is reserved");
+    };
+
     let existingProfile = userProfiles.get(caller);
     switch (existingProfile) {
       case (?existing) {
@@ -921,6 +1000,89 @@ actor {
     userProfiles.add(caller, profile);
   };
 
+  public shared ({ caller }) func uploadProfilePicture(content : Storage.ExternalBlob) : async Storage.ExternalBlob {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can upload profile pictures");
+    };
+    content;
+  };
+
+  public shared ({ caller }) func setPresetAvatar(avatarId : Nat) : async Avatar {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can set preset avatars");
+    };
+
+    // Check if avatar is unlocked for the user
+    let unlockedAvatarCount = calculateUnlockedAvatars();
+    if (avatarId >= unlockedAvatarCount) {
+      Runtime.trap("Avatar is not unlocked yet");
+    };
+
+    switch (avatars.get(avatarId)) {
+      case (null) { Runtime.trap("Avatar with id " # avatarId.toText() # " does not exist") };
+      case (?avatar) { avatar };
+    };
+  };
+
+  func calculateUnlockedAvatars() : Nat {
+    // Calculate the number of unlocked avatars using 1717266587357012000 as starting point
+    let startTimestamp : Nat = 1717266587357012000;
+    let secondsPerMonth : Nat = 30 * 24 * 60 * 60;
+    let monthsPassed : Nat = startTimestamp / secondsPerMonth;
+    let totalUnlocked : Nat = monthsPassed + 8;
+
+    if (totalUnlocked > 14) {
+      return 14;
+    };
+    if (totalUnlocked < 8) {
+      return 8;
+    };
+    totalUnlocked;
+  };
+
+  public query ({ caller }) func getUnlockedAvatars() : async [Avatar] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view avatars");
+    };
+
+    let unlockedAvatarCount = calculateUnlockedAvatars();
+    let allAvatarsArray = avatars.values().toArray();
+
+    // Only include avatars with id less than unlockedAvatarCount
+    let filteredAvatars = allAvatarsArray.filter(
+      func(avatar) {
+        avatar.id < unlockedAvatarCount;
+      }
+    );
+
+    filteredAvatars;
+  };
+
+  public shared ({ caller }) func uploadAvatar(name : Text, description : Text, content : Storage.ExternalBlob) : async Avatar {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can access this function");
+    };
+
+    if (not isManager(caller)) {
+      Runtime.trap("Unauthorized: Only managers can upload custom avatars");
+    };
+
+    let avatar : Avatar = {
+      id = nextAvatarId;
+      name;
+      blob = content;
+      description;
+    };
+
+    avatars.add(avatar.id, avatar);
+    nextAvatarId += 1;
+
+    switch (avatars.get(avatar.id)) {
+      case (null) { Runtime.trap("Critical failure: Uploaded avatar not found in test run. ") };
+      case (?avatar) { avatar };
+    };
+  };
+
   func convertToTotalTime(totalMinutes : Nat) : (Nat, Nat, Nat) {
     let totalHours = totalMinutes / 60;
     let remainingMinutes = totalMinutes % 60;
@@ -938,37 +1100,7 @@ actor {
     };
   };
 
-  func validatePhoto(photo : Blob) : () {
-    if (not (isJpeg(photo) or isPng(photo))) {
-      Runtime.trap("Unsupported image format");
-    };
-  };
-
-  func isJpeg(photo : Blob) : Bool {
-    let bytes = photo.toArray();
-    if (bytes.size() < 4) { return false };
-
-    let startCheck = bytes[0] == 0xFF and bytes[1] == 0xD8;
-    let endCheck = bytes[bytes.size() - 2] == 0xFF and bytes[bytes.size() - 1] == 0xD9;
-    startCheck and endCheck;
-  };
-
-  func isPng(photo : Blob) : Bool {
-    let bytes = photo.toArray();
-    if (bytes.size() < 8) { return false };
-
-    let magicBytes : [Nat8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
-    for (i in magicBytes.keys()) {
-      if (bytes[i] != magicBytes[i]) {
-        return false;
-      };
-    };
-    let endCheck = bytes[bytes.size() - 4] == 0x49 and bytes[bytes.size() - 3] == 0x45 and bytes[bytes.size() - 2] == 0x4E and bytes[bytes.size() - 1] == 0x44;
-    endCheck;
-  };
-
-  // New types and functions for on-time completion tracking
-  public type AssistantTaskSummary = {
+  type AssistantTaskSummary = {
     username : Text;
     totalTasks : Nat;
     completedTasks : Nat;
@@ -979,7 +1111,7 @@ actor {
     taskPreferences : [(Nat, TaskPreference)];
   };
 
-  public type AssistantTaskCompletionRecord = {
+  type AssistantTaskCompletionRecord = {
     taskId : Nat;
     taskTitle : Text;
     frequency : TaskFrequency;
@@ -987,7 +1119,7 @@ actor {
     completedOnTime : Bool;
   };
 
-  public type AssistantTaskHabits = {
+  type AssistantTaskHabits = {
     summary : AssistantTaskSummary;
     completions : [AssistantTaskCompletionRecord];
   };
@@ -1136,5 +1268,90 @@ actor {
     let diff = completionTime - lastCompletionTime;
     diff < 32 * 24 * 60 * 60 * 1_000_000_000;
   };
-};
 
+  public shared ({ caller }) func editLatestOvertimeEntry(username : Text, newEntry : OvertimeEntry) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can edit overtime entries");
+    };
+
+    let callerProfile = switch (userProfiles.get(caller)) {
+      case (null) { Runtime.trap("User not found") };
+      case (?profile) { profile };
+    };
+
+    let targetProfile = switch (findProfileByUsername(username)) {
+      case (null) { Runtime.trap("Target user not found") };
+      case (?profile) { profile };
+    };
+
+    if (targetProfile.role != #assistant) {
+      Runtime.trap("Can only edit overtime entries for assistants");
+    };
+
+    if (callerProfile.role == #manager) {
+      // Managers can edit any assistant's entries
+    } else if (Text.equal(callerProfile.username, username)) {
+      // Assistants can edit their own entries
+    } else {
+      Runtime.trap("Unauthorized: Can only edit your own overtime entries");
+    };
+
+    let entries = switch (overtimeState.get(username)) {
+      case (null) { Runtime.trap("No entries found for user") };
+      case (?entries) { entries };
+    };
+
+    if (entries.isEmpty()) {
+      Runtime.trap("No entries found for user");
+    };
+
+    var maxTimestamp : Time.Time = entries.at(0).timestamp;
+    var latestEntryIndex : Int = 0;
+
+    var index : Int = 0;
+    for (entry in entries.values()) {
+      if (entry.timestamp > maxTimestamp) {
+        maxTimestamp := entry.timestamp;
+        latestEntryIndex := index;
+      };
+      index += 1;
+    };
+
+    let entriesArray = entries.toArray();
+    if (Int.abs(latestEntryIndex) >= entriesArray.size()) {
+      Runtime.trap("Critical failure: Index for latest entry out of bounds");
+    };
+
+    let oldEntry = entriesArray[Int.abs(latestEntryIndex)];
+    let updatedEntries = entries.map<OvertimeEntry, OvertimeEntry>(
+      func(entry) {
+        if (entry.timestamp == oldEntry.timestamp) {
+          newEntry;
+        } else {
+          entry;
+        };
+      }
+    );
+
+    overtimeState.add(username, updatedEntries);
+  };
+
+  public query ({ caller }) func getUnlockedAvatarIds() : async [Nat] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view unlocked avatar IDs");
+    };
+    hiddenAvatarIds.toArray();
+  };
+
+  public query ({ caller }) func getAllAvatars() : async [Avatar] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view all avatars");
+    };
+
+    if (not isManager(caller)) {
+      Runtime.trap("Unauthorized: Only managers can view all avatars");
+    };
+
+    avatars.values().toArray();
+  };
+};

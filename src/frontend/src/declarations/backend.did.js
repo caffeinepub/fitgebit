@@ -8,6 +8,17 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const _CaffeineStorageCreateCertificateResult = IDL.Record({
+  'method' : IDL.Text,
+  'blob_hash' : IDL.Text,
+});
+export const _CaffeineStorageRefillInformation = IDL.Record({
+  'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+});
+export const _CaffeineStorageRefillResult = IDL.Record({
+  'success' : IDL.Opt(IDL.Bool),
+  'topped_up_amount' : IDL.Opt(IDL.Nat),
+});
 export const UserRole__1 = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -18,6 +29,14 @@ export const TaskFrequency = IDL.Variant({
   'daily' : IDL.Null,
   'weekly' : IDL.Null,
 });
+export const Time = IDL.Int;
+export const OvertimeEntry = IDL.Record({
+  'date' : IDL.Text,
+  'minutes' : IDL.Nat,
+  'comment' : IDL.Text,
+  'timestamp' : Time,
+  'isAdd' : IDL.Bool,
+});
 export const UserRole = IDL.Variant({
   'manager' : IDL.Null,
   'assistant' : IDL.Null,
@@ -27,29 +46,41 @@ export const Language = IDL.Variant({
   'dutch' : IDL.Null,
   'english' : IDL.Null,
 });
+export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const UserProfile = IDL.Record({
+  'presetAvatarId' : IDL.Opt(IDL.Nat),
   'principal' : IDL.Principal,
   'username' : IDL.Text,
   'role' : UserRole,
+  'initials' : IDL.Text,
   'language' : Language,
+  'profilePicture' : IDL.Opt(ExternalBlob),
+});
+export const Avatar = IDL.Record({
+  'id' : IDL.Nat,
+  'blob' : ExternalBlob,
+  'name' : IDL.Text,
+  'description' : IDL.Text,
 });
 export const AuditLogAction = IDL.Variant({
   'taskUpdated' : IDL.Null,
   'taskCreated' : IDL.Null,
   'taskMarkedDone' : IDL.Null,
 });
-export const Time = IDL.Int;
 export const TaskHistoryEntry = IDL.Record({
   'id' : IDL.Nat,
   'action' : AuditLogAction,
   'username' : IDL.Text,
   'completedOnTime' : IDL.Opt(IDL.Bool),
+  'evidencePhoto' : IDL.Opt(ExternalBlob),
   'summary' : IDL.Text,
   'taskId' : IDL.Nat,
   'userPrincipal' : IDL.Principal,
   'completionComment' : IDL.Opt(IDL.Text),
+  'userProfilePicture' : IDL.Opt(ExternalBlob),
   'timestamp' : Time,
-  'evidencePhotoPath' : IDL.Opt(IDL.Text),
+  'userAvatar' : IDL.Opt(Avatar),
+  'userInitials' : IDL.Text,
 });
 export const ToDoTask = IDL.Record({
   'id' : IDL.Nat,
@@ -60,10 +91,10 @@ export const ToDoTask = IDL.Record({
   'lastCompleted' : IDL.Opt(Time),
   'isWeekly' : IDL.Bool,
   'description' : IDL.Text,
+  'evidencePhoto' : IDL.Opt(ExternalBlob),
   'completionComment' : IDL.Opt(IDL.Text),
   'completedByUsername' : IDL.Opt(IDL.Text),
   'frequency' : TaskFrequency,
-  'evidencePhotoPath' : IDL.Opt(IDL.Text),
   'completionTimestamp' : IDL.Opt(Time),
   'isPinned' : IDL.Bool,
 });
@@ -101,13 +132,6 @@ export const AuditLogEntry = IDL.Record({
   'timestamp' : Time,
   'changeSummary' : IDL.Text,
 });
-export const OvertimeEntry = IDL.Record({
-  'date' : IDL.Text,
-  'minutes' : IDL.Nat,
-  'comment' : IDL.Text,
-  'timestamp' : Time,
-  'isAdd' : IDL.Bool,
-});
 export const OvertimeTotals = IDL.Record({
   'totalHours' : IDL.Nat,
   'totalDays' : IDL.Nat,
@@ -115,6 +139,32 @@ export const OvertimeTotals = IDL.Record({
 });
 
 export const idlService = IDL.Service({
+  '_caffeineStorageBlobIsLive' : IDL.Func(
+      [IDL.Vec(IDL.Nat8)],
+      [IDL.Bool],
+      ['query'],
+    ),
+  '_caffeineStorageBlobsToDelete' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      ['query'],
+    ),
+  '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      [],
+      [],
+    ),
+  '_caffeineStorageCreateCertificate' : IDL.Func(
+      [IDL.Text],
+      [_CaffeineStorageCreateCertificateResult],
+      [],
+    ),
+  '_caffeineStorageRefillCashier' : IDL.Func(
+      [IDL.Opt(_CaffeineStorageRefillInformation)],
+      [_CaffeineStorageRefillResult],
+      [],
+    ),
+  '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
   'checkManagerNotifications' : IDL.Func([], [IDL.Bool], []),
@@ -124,7 +174,9 @@ export const idlService = IDL.Service({
       [],
     ),
   'deleteAssistantData' : IDL.Func([IDL.Principal], [], []),
+  'editLatestOvertimeEntry' : IDL.Func([IDL.Text, OvertimeEntry], [], []),
   'getAllAssistants' : IDL.Func([], [IDL.Vec(UserProfile)], ['query']),
+  'getAllAvatars' : IDL.Func([], [IDL.Vec(Avatar)], ['query']),
   'getAllTaskHistory' : IDL.Func([], [IDL.Vec(TaskHistoryEntry)], ['query']),
   'getAllTaskHistoryEntries' : IDL.Func(
       [],
@@ -157,6 +209,8 @@ export const idlService = IDL.Service({
       [IDL.Vec(IDL.Tuple(IDL.Nat, TaskPreference))],
       ['query'],
     ),
+  'getUnlockedAvatarIds' : IDL.Func([], [IDL.Vec(IDL.Nat)], ['query']),
+  'getUnlockedAvatars' : IDL.Func([], [IDL.Vec(Avatar)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -165,12 +219,13 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'logOvertime' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text, IDL.Bool], [], []),
   'markTaskDone' : IDL.Func(
-      [IDL.Nat, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
+      [IDL.Nat, IDL.Opt(ExternalBlob), IDL.Opt(IDL.Text)],
       [],
       [],
     ),
-  'registerAssistant' : IDL.Func([IDL.Text, Language], [], []),
+  'registerAssistant' : IDL.Func([IDL.Text, Language, IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'setPresetAvatar' : IDL.Func([IDL.Nat], [Avatar], []),
   'setTaskPinnedStatus' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
   'setTaskPreference' : IDL.Func([IDL.Text, IDL.Nat, TaskPreference], [], []),
   'updateTask' : IDL.Func(
@@ -178,11 +233,24 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'uploadAvatar' : IDL.Func([IDL.Text, IDL.Text, ExternalBlob], [Avatar], []),
+  'uploadProfilePicture' : IDL.Func([ExternalBlob], [ExternalBlob], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const _CaffeineStorageCreateCertificateResult = IDL.Record({
+    'method' : IDL.Text,
+    'blob_hash' : IDL.Text,
+  });
+  const _CaffeineStorageRefillInformation = IDL.Record({
+    'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+  });
+  const _CaffeineStorageRefillResult = IDL.Record({
+    'success' : IDL.Opt(IDL.Bool),
+    'topped_up_amount' : IDL.Opt(IDL.Nat),
+  });
   const UserRole__1 = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -193,6 +261,14 @@ export const idlFactory = ({ IDL }) => {
     'daily' : IDL.Null,
     'weekly' : IDL.Null,
   });
+  const Time = IDL.Int;
+  const OvertimeEntry = IDL.Record({
+    'date' : IDL.Text,
+    'minutes' : IDL.Nat,
+    'comment' : IDL.Text,
+    'timestamp' : Time,
+    'isAdd' : IDL.Bool,
+  });
   const UserRole = IDL.Variant({
     'manager' : IDL.Null,
     'assistant' : IDL.Null,
@@ -202,29 +278,41 @@ export const idlFactory = ({ IDL }) => {
     'dutch' : IDL.Null,
     'english' : IDL.Null,
   });
+  const ExternalBlob = IDL.Vec(IDL.Nat8);
   const UserProfile = IDL.Record({
+    'presetAvatarId' : IDL.Opt(IDL.Nat),
     'principal' : IDL.Principal,
     'username' : IDL.Text,
     'role' : UserRole,
+    'initials' : IDL.Text,
     'language' : Language,
+    'profilePicture' : IDL.Opt(ExternalBlob),
+  });
+  const Avatar = IDL.Record({
+    'id' : IDL.Nat,
+    'blob' : ExternalBlob,
+    'name' : IDL.Text,
+    'description' : IDL.Text,
   });
   const AuditLogAction = IDL.Variant({
     'taskUpdated' : IDL.Null,
     'taskCreated' : IDL.Null,
     'taskMarkedDone' : IDL.Null,
   });
-  const Time = IDL.Int;
   const TaskHistoryEntry = IDL.Record({
     'id' : IDL.Nat,
     'action' : AuditLogAction,
     'username' : IDL.Text,
     'completedOnTime' : IDL.Opt(IDL.Bool),
+    'evidencePhoto' : IDL.Opt(ExternalBlob),
     'summary' : IDL.Text,
     'taskId' : IDL.Nat,
     'userPrincipal' : IDL.Principal,
     'completionComment' : IDL.Opt(IDL.Text),
+    'userProfilePicture' : IDL.Opt(ExternalBlob),
     'timestamp' : Time,
-    'evidencePhotoPath' : IDL.Opt(IDL.Text),
+    'userAvatar' : IDL.Opt(Avatar),
+    'userInitials' : IDL.Text,
   });
   const ToDoTask = IDL.Record({
     'id' : IDL.Nat,
@@ -235,10 +323,10 @@ export const idlFactory = ({ IDL }) => {
     'lastCompleted' : IDL.Opt(Time),
     'isWeekly' : IDL.Bool,
     'description' : IDL.Text,
+    'evidencePhoto' : IDL.Opt(ExternalBlob),
     'completionComment' : IDL.Opt(IDL.Text),
     'completedByUsername' : IDL.Opt(IDL.Text),
     'frequency' : TaskFrequency,
-    'evidencePhotoPath' : IDL.Opt(IDL.Text),
     'completionTimestamp' : IDL.Opt(Time),
     'isPinned' : IDL.Bool,
   });
@@ -276,13 +364,6 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : Time,
     'changeSummary' : IDL.Text,
   });
-  const OvertimeEntry = IDL.Record({
-    'date' : IDL.Text,
-    'minutes' : IDL.Nat,
-    'comment' : IDL.Text,
-    'timestamp' : Time,
-    'isAdd' : IDL.Bool,
-  });
   const OvertimeTotals = IDL.Record({
     'totalHours' : IDL.Nat,
     'totalDays' : IDL.Nat,
@@ -290,6 +371,32 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
+    '_caffeineStorageBlobIsLive' : IDL.Func(
+        [IDL.Vec(IDL.Nat8)],
+        [IDL.Bool],
+        ['query'],
+      ),
+    '_caffeineStorageBlobsToDelete' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        ['query'],
+      ),
+    '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        [],
+        [],
+      ),
+    '_caffeineStorageCreateCertificate' : IDL.Func(
+        [IDL.Text],
+        [_CaffeineStorageCreateCertificateResult],
+        [],
+      ),
+    '_caffeineStorageRefillCashier' : IDL.Func(
+        [IDL.Opt(_CaffeineStorageRefillInformation)],
+        [_CaffeineStorageRefillResult],
+        [],
+      ),
+    '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
     'checkManagerNotifications' : IDL.Func([], [IDL.Bool], []),
@@ -299,7 +406,9 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'deleteAssistantData' : IDL.Func([IDL.Principal], [], []),
+    'editLatestOvertimeEntry' : IDL.Func([IDL.Text, OvertimeEntry], [], []),
     'getAllAssistants' : IDL.Func([], [IDL.Vec(UserProfile)], ['query']),
+    'getAllAvatars' : IDL.Func([], [IDL.Vec(Avatar)], ['query']),
     'getAllTaskHistory' : IDL.Func([], [IDL.Vec(TaskHistoryEntry)], ['query']),
     'getAllTaskHistoryEntries' : IDL.Func(
         [],
@@ -332,6 +441,8 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IDL.Tuple(IDL.Nat, TaskPreference))],
         ['query'],
       ),
+    'getUnlockedAvatarIds' : IDL.Func([], [IDL.Vec(IDL.Nat)], ['query']),
+    'getUnlockedAvatars' : IDL.Func([], [IDL.Vec(Avatar)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -340,12 +451,13 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'logOvertime' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text, IDL.Bool], [], []),
     'markTaskDone' : IDL.Func(
-        [IDL.Nat, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
+        [IDL.Nat, IDL.Opt(ExternalBlob), IDL.Opt(IDL.Text)],
         [],
         [],
       ),
-    'registerAssistant' : IDL.Func([IDL.Text, Language], [], []),
+    'registerAssistant' : IDL.Func([IDL.Text, Language, IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'setPresetAvatar' : IDL.Func([IDL.Nat], [Avatar], []),
     'setTaskPinnedStatus' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
     'setTaskPreference' : IDL.Func([IDL.Text, IDL.Nat, TaskPreference], [], []),
     'updateTask' : IDL.Func(
@@ -353,6 +465,8 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'uploadAvatar' : IDL.Func([IDL.Text, IDL.Text, ExternalBlob], [Avatar], []),
+    'uploadProfilePicture' : IDL.Func([ExternalBlob], [ExternalBlob], []),
   });
 };
 

@@ -1,64 +1,37 @@
 {
   "kind": "build_request",
-  "title": "Promote current draft build to live production deployment",
+  "title": "Double the header logo size",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Promote the currently reviewed draft build to the live/production deployment so end users load this version by default (i.e., the live canister assets and backend match the current draft).",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Go live with this version"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The live (non-draft) deployment serves the same frontend and backend code as the currently reviewed draft version.",
-        "Users who open the app without any preview/draft URL are routed to this promoted version.",
-        "No user-facing text is introduced that is not in English as part of the go-live process."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "As part of go-live, ensure the deployed UI theme defaults are not in an unintended extra-dim/dark state compared to the version the user just approved.",
+      "text": "Increase the size of the selected header logo image at XPath /html[1]/body[1]/div[1]/div[1]/header[1]/div[1]/div[1]/img[1] to double its current rendered size by updating only that <img> element’s sizing styles/classes (currently Tailwind className \"h-8 w-8\" in frontend/src/components/Header.tsx).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Go live with this version"
+          "Can you make this bigger (double size)"
         ]
       },
       "acceptanceCriteria": [
-        "On a fresh load (new session, no persisted theme), the app does not render with an extra-dim/dark appearance inconsistent with the approved draft.",
-        "Theme toggle (if present) continues to work and does not force an unintended default on startup."
+        "In the app header, the FitGebit logo image renders at 2x the previous width and height (e.g., from 32x32 to 64x64).",
+        "No other elements (spacing, other icons, avatars, buttons) are modified aside from any necessary layout accommodation caused by the larger logo.",
+        "The change is implemented in frontend/src/components/Header.tsx by adjusting the selected <img> element’s Tailwind size classes."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
-    "Do not edit any frontend files in immutablePaths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui."
+    "Apply the change ONLY to the selected element (the header logo <img>).",
+    "Do not modify any frontend immutable paths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Adding new application features unrelated to the release promotion.",
-    "Changing data schemas or migrating state unless required to successfully deploy the approved draft as live."
+    "Deploying/publishing the app live.",
+    "Changing the logo image file itself or generating new logo assets."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

@@ -32,7 +32,7 @@ export default function TaskPreferencesManager() {
     try {
       await setPreferenceMutation.mutateAsync({
         assistantUsername: selectedAssistant,
-        taskId,
+        taskId: Number(taskId),
         preference,
       });
       toast.success('Preference updated');
@@ -170,7 +170,7 @@ export default function TaskPreferencesManager() {
                                 Neutral
                               </Button>
                               <Button
-                                variant={currentPref === TaskPreference.hated ? 'destructive' : 'outline'}
+                                variant={currentPref === TaskPreference.hated ? 'default' : 'outline'}
                                 size="sm"
                                 onClick={() => handlePreferenceChange(task.id, TaskPreference.hated)}
                                 disabled={setPreferenceMutation.isPending}

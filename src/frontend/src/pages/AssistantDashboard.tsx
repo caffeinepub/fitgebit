@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useQueryClient } from '@tanstack/react-query';
 import { useGetOvertimeEntries, useGetOvertimeTotals, useLogOvertime } from '../hooks/useQueries';
 import type { UserProfile } from '../backend';
 import Header from '../components/Header';
@@ -18,19 +16,12 @@ interface AssistantDashboardProps {
 }
 
 export default function AssistantDashboard({ userProfile }: AssistantDashboardProps) {
-  const { clear } = useInternetIdentity();
-  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('add');
   const [mainTab, setMainTab] = useState('todo');
 
   const { data: entries = [], isLoading: entriesLoading } = useGetOvertimeEntries(userProfile.username);
   const { data: totals, isLoading: totalsLoading } = useGetOvertimeTotals(userProfile.username);
   const logOvertimeMutation = useLogOvertime();
-
-  const handleLogout = async () => {
-    await clear();
-    queryClient.clear();
-  };
 
   const handleLogOvertime = async (data: {
     date: string;
@@ -46,7 +37,7 @@ export default function AssistantDashboard({ userProfile }: AssistantDashboardPr
 
   return (
     <div className="min-h-screen bg-background">
-      <Header userProfile={userProfile} onLogout={handleLogout} />
+      <Header />
 
       <main className="container mx-auto px-4 py-4">
         <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-4">
@@ -119,7 +110,11 @@ export default function AssistantDashboard({ userProfile }: AssistantDashboardPr
                     <CardDescription>View all your overtime entries</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <OvertimeHistory entries={entries} isLoading={entriesLoading} />
+                    <OvertimeHistory 
+                      entries={entries} 
+                      isLoading={entriesLoading}
+                      username={userProfile.username}
+                    />
                   </CardContent>
                 </Card>
               </div>

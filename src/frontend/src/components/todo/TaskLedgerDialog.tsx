@@ -6,6 +6,7 @@ import { useGetTaskHistory } from '../../hooks/useQueries';
 import type { AuditLogAction } from '../../backend';
 import { useState } from 'react';
 import EvidenceImagePreviewDialog from './EvidenceImagePreviewDialog';
+import { getExternalBlobUrl } from '../../utils/externalBlobUrl';
 
 interface TaskLedgerDialogProps {
   open: boolean;
@@ -15,7 +16,7 @@ interface TaskLedgerDialogProps {
 }
 
 export default function TaskLedgerDialog({ open, onOpenChange, taskId, taskTitle }: TaskLedgerDialogProps) {
-  const { data: history = [], isLoading } = useGetTaskHistory(taskId);
+  const { data: history = [], isLoading } = useGetTaskHistory(Number(taskId));
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const formatTimestamp = (timestamp: bigint) => {
@@ -55,6 +56,17 @@ export default function TaskLedgerDialog({ open, onOpenChange, taskId, taskTitle
     }
   };
 
+  const handleViewPhoto = async (entry: typeof history[0]) => {
+    if (!entry.evidencePhoto) return;
+    
+    try {
+      const url = await getExternalBlobUrl(entry.evidencePhoto);
+      setPreviewImage(url);
+    } catch (error) {
+      console.error('Failed to load photo:', error);
+    }
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -86,38 +98,42 @@ export default function TaskLedgerDialog({ open, onOpenChange, taskId, taskTitle
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {history.map((entry) => (
-                    <TableRow key={entry.id.toString()}>
-                      <TableCell className="whitespace-nowrap text-sm">
-                        {formatTimestamp(entry.timestamp)}
-                      </TableCell>
-                      <TableCell className="font-medium">{entry.username}</TableCell>
-                      <TableCell>
-                        <Badge variant={getActionBadgeVariant(entry.action)}>
-                          {getActionLabel(entry.action)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p className="text-sm">{entry.summary}</p>
-                          {entry.completionComment && (
-                            <p className="text-sm text-muted-foreground italic">
-                              "{entry.completionComment}"
-                            </p>
-                          )}
-                          {entry.evidencePhotoPath && (
-                            <button
-                              onClick={() => setPreviewImage(entry.evidencePhotoPath!)}
-                              className="flex items-center gap-1 text-sm text-primary hover:underline"
-                            >
-                              <ImageIcon className="h-3 w-3" />
-                              View photo
-                            </button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {history.map((entry) => {
+                    const displayName = entry.userInitials || entry.username;
+                    
+                    return (
+                      <TableRow key={entry.id.toString()}>
+                        <TableCell className="whitespace-nowrap text-sm">
+                          {formatTimestamp(entry.timestamp)}
+                        </TableCell>
+                        <TableCell className="font-medium">{displayName}</TableCell>
+                        <TableCell>
+                          <Badge variant={getActionBadgeVariant(entry.action)}>
+                            {getActionLabel(entry.action)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <p className="text-sm">{entry.summary}</p>
+                            {entry.completionComment && (
+                              <p className="text-sm text-muted-foreground italic">
+                                "{entry.completionComment}"
+                              </p>
+                            )}
+                            {entry.evidencePhoto && (
+                              <button
+                                onClick={() => handleViewPhoto(entry)}
+                                className="flex items-center gap-1 text-sm text-primary hover:underline"
+                              >
+                                <ImageIcon className="h-3 w-3" />
+                                View photo
+                              </button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

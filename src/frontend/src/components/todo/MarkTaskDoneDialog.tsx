@@ -3,23 +3,22 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Loader2, Camera } from 'lucide-react';
-import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+import { ExternalBlob } from '../../backend';
 import type { ToDoTask } from '../../backend';
+import TaskCompletionPhotoInput from './TaskCompletionPhotoInput';
 
 interface MarkTaskDoneDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: {
-    evidencePhotoPath: string | null;
+    photoData: ExternalBlob | null;
+    photoFormat: string | null;
     completionComment: string | null;
   }) => Promise<void>;
   task: ToDoTask | null;
   isLoading: boolean;
 }
-
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
 export default function MarkTaskDoneDialog({
   open,
@@ -32,52 +31,28 @@ export default function MarkTaskDoneDialog({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.match(/^image\/(jpeg|png)$/)) {
-      toast.error('Please select a JPEG or PNG image');
-      e.target.value = '';
-      return;
-    }
-
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error(`Image must be smaller than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
-      e.target.value = '';
-      return;
-    }
-
+  const handlePhotoSelected = (file: File | null, preview: string | null) => {
     setSelectedFile(file);
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    setPreviewUrl(preview);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      let photoData: string | null = null;
+      let photoData: ExternalBlob | null = null;
+      let photoFormat: string | null = null;
 
       if (selectedFile) {
-        // Convert to base64 for storage
-        const reader = new FileReader();
-        photoData = await new Promise((resolve, reject) => {
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(selectedFile);
-        });
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        photoData = ExternalBlob.fromBytes(bytes);
+        photoFormat = selectedFile.type;
       }
 
       await onSubmit({
-        evidencePhotoPath: photoData,
+        photoData,
+        photoFormat,
         completionComment: comment.trim() || null,
       });
 
@@ -121,35 +96,11 @@ export default function MarkTaskDoneDialog({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="photo">Photo (optional)</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="photo"
-                  type="file"
-                  accept="image/jpeg,image/png"
-                  onChange={handleFileChange}
-                  className="cursor-pointer"
-                />
-                <Camera className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                JPEG or PNG, max 2MB
-              </p>
-            </div>
-
-            {previewUrl && (
-              <div className="space-y-2">
-                <Label>Preview</Label>
-                <div className="relative aspect-video w-full overflow-hidden rounded-md border">
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-              </div>
-            )}
+            <TaskCompletionPhotoInput
+              onPhotoSelected={handlePhotoSelected}
+              selectedFile={selectedFile}
+              previewUrl={previewUrl}
+            />
           </div>
 
           <DialogFooter>

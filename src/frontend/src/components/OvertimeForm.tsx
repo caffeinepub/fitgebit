@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getLocalToday, isFutureDate } from '../utils/overtimeDates';
 
 interface OvertimeFormProps {
   onSubmit: (data: {
@@ -17,21 +18,9 @@ interface OvertimeFormProps {
   isLoading: boolean;
 }
 
-// Convert DD-MM-YYYY to YYYY-MM-DD for backend
-const formatDateForBackend = (ddmmyyyy: string): string => {
-  const [day, month, year] = ddmmyyyy.split('-');
-  return `${year}-${month}-${day}`;
-};
-
-// Convert YYYY-MM-DD to DD-MM-YYYY for display
-const formatDateForDisplay = (yyyymmdd: string): string => {
-  const [year, month, day] = yyyymmdd.split('-');
-  return `${day}-${month}-${year}`;
-};
-
 export default function OvertimeForm({ onSubmit, isAdd, isLoading }: OvertimeFormProps) {
-  const today = new Date().toISOString().split('T')[0];
-  const [date, setDate] = useState(formatDateForDisplay(today));
+  const today = getLocalToday();
+  const [date, setDate] = useState(today);
   const [minutes, setMinutes] = useState('');
   const [comment, setComment] = useState('');
 
@@ -51,31 +40,19 @@ export default function OvertimeForm({ onSubmit, isAdd, isLoading }: OvertimeFor
       return;
     }
 
-    // Validate date format
-    const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
-    if (!dateRegex.test(date)) {
-      toast.error('Please enter a valid date (DD-MM-YYYY)');
-      return;
-    }
-
-    const backendDate = formatDateForBackend(date);
-    const selectedDate = new Date(backendDate);
-    const todayDate = new Date();
-    todayDate.setHours(0, 0, 0, 0);
-
-    if (isNaN(selectedDate.getTime())) {
+    if (!date) {
       toast.error('Please enter a valid date');
       return;
     }
 
-    if (selectedDate > todayDate) {
+    if (isFutureDate(date)) {
       toast.error('Cannot log overtime for future dates');
       return;
     }
 
     try {
       await onSubmit({
-        date: backendDate,
+        date,
         minutes: minutesNum,
         comment: comment.trim(),
         isAdd,
@@ -86,15 +63,10 @@ export default function OvertimeForm({ onSubmit, isAdd, isLoading }: OvertimeFor
       // Reset form
       setMinutes('');
       setComment('');
+      setDate(today);
     } catch (error: any) {
       toast.error(error.message || 'Failed to log overtime');
     }
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Allow user to type freely
-    setDate(value);
   };
 
   return (
@@ -103,13 +75,16 @@ export default function OvertimeForm({ onSubmit, isAdd, isLoading }: OvertimeFor
         <Label htmlFor="date">Date</Label>
         <Input
           id="date"
-          type="text"
+          type="date"
           value={date}
-          onChange={handleDateChange}
+          onChange={(e) => setDate(e.target.value)}
+          max={today}
           disabled={isLoading}
-          placeholder="DD-MM-YYYY"
           required
         />
+        <p className="text-xs text-muted-foreground">
+          Select any date up to and including today
+        </p>
       </div>
 
       <div className="space-y-2">

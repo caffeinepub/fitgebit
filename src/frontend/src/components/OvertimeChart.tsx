@@ -5,18 +5,13 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatOvertimeDate } from '../utils/overtimeDates';
 
 interface OvertimeChartProps {
   entries: OvertimeEntry[];
   isLoading: boolean;
   variant?: 'line' | 'bar';
 }
-
-// Convert YYYY-MM-DD to DD-MM-YYYY
-const formatDateEuropean = (dateStr: string): string => {
-  const [year, month, day] = dateStr.split('-');
-  return `${day}-${month}-${year}`;
-};
 
 export default function OvertimeChart({ entries, isLoading, variant = 'line' }: OvertimeChartProps) {
   const chartData = useMemo(() => {
@@ -42,7 +37,7 @@ export default function OvertimeChart({ entries, isLoading, variant = 'line' }: 
 
     // Convert to array format for chart
     return Array.from(dateMap.entries()).map(([date, hours]) => ({
-      date: formatDateEuropean(date),
+      date: formatOvertimeDate(date),
       hours: parseFloat(hours.toFixed(2)),
     }));
   }, [entries]);

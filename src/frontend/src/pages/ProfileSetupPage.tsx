@@ -5,12 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, User } from 'lucide-react';
+import { Loader2, User, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Language } from '../backend';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function ProfileSetupPage() {
   const [username, setUsername] = useState('');
+  const [initials, setInitials] = useState('');
   const [language, setLanguage] = useState<Language>('english' as Language);
   const registerMutation = useRegisterAssistant();
 
@@ -27,9 +29,23 @@ export default function ProfileSetupPage() {
       return;
     }
 
+    if (!initials.trim()) {
+      toast.error('Please enter your initials');
+      return;
+    }
+
+    if (initials.trim().length > 4) {
+      toast.error('Initials must be 4 characters or less');
+      return;
+    }
+
     try {
-      await registerMutation.mutateAsync({ username: username.trim(), language });
-      toast.success('Profile created successfully!');
+      await registerMutation.mutateAsync({ 
+        username: username.trim(), 
+        language,
+        initials: initials.trim().toUpperCase()
+      });
+      toast.success('Profile created successfully! Loading your dashboard...');
     } catch (error: any) {
       toast.error(error.message || 'Failed to create profile');
     }
@@ -55,10 +71,17 @@ export default function ProfileSetupPage() {
               Profile Setup
             </CardTitle>
             <CardDescription>
-              Choose a unique username and your preferred language
+              Choose a unique username, your initials, and your preferred language
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <Alert className="mb-4 border-primary/20 bg-primary/5">
+              <Info className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                <strong>Note:</strong> The first account to complete setup will automatically become the Manager. All subsequent accounts will be Assistants.
+              </AlertDescription>
+            </Alert>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
@@ -72,6 +95,21 @@ export default function ProfileSetupPage() {
                 />
                 <p className="text-xs text-muted-foreground">
                   This will be your display name (minimum 3 characters)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="initials">Initials</Label>
+                <Input
+                  id="initials"
+                  placeholder="e.g., JD"
+                  value={initials}
+                  onChange={(e) => setInitials(e.target.value)}
+                  disabled={registerMutation.isPending}
+                  maxLength={4}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your initials will be shown when you complete tasks (max 4 characters)
                 </p>
               </div>
 

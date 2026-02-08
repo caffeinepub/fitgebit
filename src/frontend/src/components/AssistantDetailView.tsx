@@ -8,22 +8,18 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import OvertimeHistory from './OvertimeHistory';
 import OvertimeChart from './OvertimeChart';
-import { X, Download, Trash2, User, Calendar, Clock, CheckCircle2, XCircle, TrendingUp, ListChecks } from 'lucide-react';
+import { X, Download, Trash2, Calendar, Clock, CheckCircle2, XCircle, TrendingUp, ListChecks } from 'lucide-react';
 import { toast } from 'sonner';
 import { computeOnTimeMetrics, formatCompletionHistory, formatTimestamp, getPreferenceLabel, getPreferenceColor } from '../utils/taskHabits';
 import { UserRole } from '../backend';
+import ProfileAvatar from './profile/ProfileAvatar';
+import { formatOvertimeDate } from '../utils/overtimeDates';
 
 interface AssistantDetailViewProps {
   assistant: UserProfile;
   onDelete: (assistant: UserProfile) => void;
   onClose: () => void;
 }
-
-// Convert YYYY-MM-DD to DD-MM-YYYY
-const formatDateEuropean = (dateStr: string): string => {
-  const [year, month, day] = dateStr.split('-');
-  return `${day}-${month}-${year}`;
-};
 
 // Convert total minutes to days/hours/minutes display
 const formatMinutes = (totalMinutes: number): string => {
@@ -38,6 +34,12 @@ const formatMinutes = (totalMinutes: number): string => {
   if (minutes > 0 || parts.length === 0) parts.push(`${minutes}m`);
 
   return parts.join(' ');
+};
+
+// Convert bigint timestamp to Date for formatting
+const formatBigIntTimestamp = (timestamp: bigint): string => {
+  const date = new Date(Number(timestamp) / 1000000);
+  return formatTimestamp(date);
 };
 
 export default function AssistantDetailView({ assistant, onDelete, onClose }: AssistantDetailViewProps) {
@@ -60,7 +62,7 @@ export default function AssistantDetailView({ assistant, onDelete, onClose }: As
 
     const headers = ['Date', 'Type', 'Minutes', 'Time Display', 'Comment'];
     const rows = entries.map((entry) => [
-      formatDateEuropean(entry.date),
+      formatOvertimeDate(entry.date),
       entry.isAdd ? 'Added' : 'Used',
       Number(entry.minutes).toString(),
       formatMinutes(Number(entry.minutes)),
@@ -74,86 +76,114 @@ export default function AssistantDetailView({ assistant, onDelete, onClose }: As
 
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${assistant.username}_overtime_${formatDateEuropean(new Date().toISOString().split('T')[0])}.csv`;
-    a.click();
+    const link = document.createElement('a');
+    link.href = url;
+    const today = new Date();
+    const dateStr = formatOvertimeDate(
+      `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    ).replace(/ /g, '-');
+    link.download = `${assistant.username}-overtime-${dateStr}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
     toast.success('CSV exported successfully');
   };
 
-  // Compute task habit metrics
   const onTimeMetrics = taskHabits ? computeOnTimeMetrics(taskHabits.completions) : null;
-  const completionHistory = taskHabits ? formatCompletionHistory(taskHabits.completions) : [];
-  const taskPreferences = taskHabits?.summary.taskPreferences || [];
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <User className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <CardTitle>{assistant.username}</CardTitle>
-                <CardDescription className="capitalize">{assistant.language}</CardDescription>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-lg border p-4 text-center">
-              <Calendar className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
-              <p className="text-2xl font-bold">{days}</p>
-              <p className="text-xs text-muted-foreground">Days</p>
-            </div>
-            <div className="rounded-lg border p-4 text-center">
-              <Clock className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
-              <p className="text-2xl font-bold">{hours}</p>
-              <p className="text-xs text-muted-foreground">Hours</p>
-            </div>
-            <div className="rounded-lg border p-4 text-center">
-              <Clock className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
-              <p className="text-2xl font-bold">{minutes}</p>
-              <p className="text-xs text-muted-foreground">Minutes</p>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-4">
+          <ProfileAvatar
+            profilePicture={assistant.profilePicture}
+            presetAvatarId={assistant.presetAvatarId}
+            initials={assistant.initials}
+            username={assistant.username}
+            size="lg"
+          />
+          <div>
+            <h2 className="text-2xl font-bold">{assistant.username}</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="outline">{assistant.initials}</Badge>
+              <Badge>{assistant.role}</Badge>
             </div>
           </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+          <Button variant="destructive" size="icon" onClick={() => onDelete(assistant)}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
 
-          <Separator />
+      <Separator />
 
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={handleExportCSV}>
-              <Download className="mr-2 h-4 w-4" />
-              Export CSV
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onDelete(assistant)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Data
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Total Days</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {totalsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{days}</div>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Total Hours</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {totalsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{hours}</div>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Total Minutes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {totalsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{minutes}</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <OvertimeChart entries={entries} isLoading={entriesLoading} variant="bar" />
 
       <Card>
         <CardHeader>
-          <CardTitle>Overtime History</CardTitle>
-          <CardDescription>All overtime entries for {assistant.username}</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Overtime History</CardTitle>
+              <CardDescription>All overtime entries for {assistant.username}</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={entries.length === 0}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <OvertimeHistory entries={entries} isLoading={entriesLoading} />
+          <OvertimeHistory 
+            entries={entries} 
+            isLoading={entriesLoading}
+            username={assistant.username}
+          />
         </CardContent>
       </Card>
 
@@ -161,119 +191,155 @@ export default function AssistantDetailView({ assistant, onDelete, onClose }: As
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
+              <ListChecks className="h-5 w-5" />
               Task Habits
             </CardTitle>
-            <CardDescription>Completion history and task preferences for {assistant.username}</CardDescription>
+            <CardDescription>Task completion patterns and preferences</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent>
             {taskHabitsLoading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-20 w-full" />
-                <Skeleton className="h-40 w-full" />
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
               </div>
             ) : taskHabitsError ? (
-              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center text-sm text-destructive">
-                Failed to load task habits. You may not have permission to view this data.
+              <div className="py-8 text-center text-muted-foreground">
+                Failed to load task habits
               </div>
-            ) : !taskHabits || taskHabits.completions.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-8 text-center">
-                <ListChecks className="mx-auto mb-3 h-12 w-12 text-muted-foreground/50" />
-                <p className="text-sm text-muted-foreground">No task completions yet</p>
-              </div>
-            ) : (
-              <>
+            ) : taskHabits ? (
+              <div className="space-y-6">
+                {/* Summary Stats */}
+                <div className="grid gap-4 md:grid-cols-4">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Total Tasks</p>
+                    <p className="text-2xl font-bold">{Number(taskHabits.summary.totalTasks)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Completed</p>
+                    <p className="text-2xl font-bold">{Number(taskHabits.summary.completedTasks)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">On Time</p>
+                    <p className="text-2xl font-bold flex items-center gap-2">
+                      {Number(taskHabits.summary.onTimeTasks)}
+                      {onTimeMetrics && (
+                        <span className="text-sm font-normal text-muted-foreground">
+                          ({onTimeMetrics.onTimePercentage}%)
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Task Types</p>
+                    <p className="text-sm">
+                      {Number(taskHabits.summary.dailyTasks)}D / {Number(taskHabits.summary.weeklyTasks)}W /{' '}
+                      {Number(taskHabits.summary.monthlyTasks)}M
+                    </p>
+                  </div>
+                </div>
+
+                <Separator />
+
                 {/* On-Time Metrics */}
                 {onTimeMetrics && (
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="rounded-lg border p-4 text-center">
-                      <CheckCircle2 className="mx-auto mb-2 h-5 w-5 text-green-600 dark:text-green-400" />
-                      <p className="text-2xl font-bold">{onTimeMetrics.onTimePercentage}%</p>
-                      <p className="text-xs text-muted-foreground">On-Time Rate</p>
+                  <>
+                    <div>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4" />
+                        On-Time Performance
+                      </h4>
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          <span className="text-sm">
+                            On Time: <strong>{onTimeMetrics.onTimeCompletions}</strong>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <XCircle className="h-4 w-4 text-red-600" />
+                          <span className="text-sm">
+                            Late: <strong>{onTimeMetrics.lateCompletions}</strong>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm">
+                            Rate: <strong>{onTimeMetrics.onTimePercentage}%</strong>
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="rounded-lg border p-4 text-center">
-                      <CheckCircle2 className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
-                      <p className="text-2xl font-bold">{onTimeMetrics.onTimeCompletions}</p>
-                      <p className="text-xs text-muted-foreground">On Time</p>
-                    </div>
-                    <div className="rounded-lg border p-4 text-center">
-                      <XCircle className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
-                      <p className="text-2xl font-bold">{onTimeMetrics.lateCompletions}</p>
-                      <p className="text-xs text-muted-foreground">Late</p>
-                    </div>
-                  </div>
+                    <Separator />
+                  </>
                 )}
-
-                <Separator />
 
                 {/* Task Preferences */}
-                {taskPreferences.length > 0 && (
+                {taskHabits.summary.taskPreferences.length > 0 && (
+                  <>
+                    <div>
+                      <h4 className="font-semibold mb-3">Task Preferences</h4>
+                      <div className="space-y-2">
+                        {taskHabits.summary.taskPreferences.map(([taskId, preference]) => (
+                          <div key={taskId.toString()} className="flex items-center gap-2">
+                            <Badge variant="outline" className={getPreferenceColor(preference)}>
+                              {getPreferenceLabel(preference)}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">Task #{Number(taskId)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <Separator />
+                  </>
+                )}
+
+                {/* Recent Completions */}
+                {taskHabits.completions.length > 0 && (
                   <div>
-                    <h4 className="mb-3 text-sm font-medium">Task Preferences</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {taskPreferences.map(([taskId, preference]) => {
-                        const task = taskHabits.completions.find((c) => c.taskId === taskId);
-                        return (
-                          <Badge
-                            key={taskId.toString()}
-                            variant="outline"
-                            className={getPreferenceColor(preference)}
-                          >
-                            {task?.taskTitle || `Task ${taskId}`}: {getPreferenceLabel(preference)}
-                          </Badge>
-                        );
-                      })}
+                    <h4 className="font-semibold mb-3">Recent Completions</h4>
+                    <div className="overflow-x-auto rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Task</TableHead>
+                            <TableHead>Frequency</TableHead>
+                            <TableHead>Completed</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {taskHabits.completions.slice(0, 10).map((completion, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="font-medium">{completion.taskTitle}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{completion.frequency}</Badge>
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {formatBigIntTimestamp(completion.completionTimestamp)}
+                              </TableCell>
+                              <TableCell>
+                                {completion.completedOnTime ? (
+                                  <Badge variant="default" className="bg-green-600">
+                                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                                    On Time
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="destructive">
+                                    <XCircle className="mr-1 h-3 w-3" />
+                                    Late
+                                  </Badge>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
                 )}
-
-                <Separator />
-
-                {/* Completion History */}
-                <div>
-                  <h4 className="mb-3 text-sm font-medium">Completion History</h4>
-                  <div className="rounded-lg border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Task</TableHead>
-                          <TableHead>Frequency</TableHead>
-                          <TableHead>Completed</TableHead>
-                          <TableHead className="text-center">Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {completionHistory.slice(0, 10).map((completion, idx) => (
-                          <TableRow key={`${completion.taskId}-${idx}`}>
-                            <TableCell className="font-medium">{completion.taskTitle}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="text-xs">
-                                {completion.frequency}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {formatTimestamp(completion.completionTimestamp)}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {completion.completedOnTime ? (
-                                <CheckCircle2 className="inline h-4 w-4 text-green-600 dark:text-green-400" />
-                              ) : (
-                                <XCircle className="inline h-4 w-4 text-red-600 dark:text-red-400" />
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {completionHistory.length > 10 && (
-                    <p className="mt-2 text-center text-xs text-muted-foreground">
-                      Showing 10 of {completionHistory.length} completions
-                    </p>
-                  )}
-                </div>
-              </>
-            )}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       )}
