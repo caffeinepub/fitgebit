@@ -2,13 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-dark-mode-so-it-applies-across-the-entire-app-and-works-in-both-preview-and-live-versions-by-enabling-system-device-theme-detection-and-ensuring-the-theme-toggle-actually-changes-the-ui",
-      "featureTitle": "Fix dark mode so it applies across the entire app and works in both preview and live versions by enabling system/device theme detection and ensuring the theme toggle actually changes the UI.",
+      "featureId": "feature-promote-the-currently-reviewed-draft-build-to-the-live-production-deployment-so-end-users-load-this-version-by-default-i-e-the-live-canister-assets-and-backend-match-the-current-draft",
+      "featureTitle": "Promote the currently reviewed draft build to the live/production deployment so end users load this version by default (i.e., the live canister assets and backend match the current draft).",
       "files": [
         "frontend/index.html",
-        "frontend/src/App.tsx",
-        "frontend/src/components/ThemeProvider.tsx",
-        "frontend/src/index.css"
+        "frontend/public/rebuild-trigger.txt"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,15 +17,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-47"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-set-dutch-as-the-default-language-for-new-users-during-profile-setup-while-still-allowing-users-to-manually-change-the-language-selection-before-creating-their-profile",
-      "featureTitle": "Set Dutch as the default language for new users during profile setup while still allowing users to manually change the language selection before creating their profile.",
+      "featureId": "feature-as-part-of-go-live-ensure-the-deployed-ui-theme-defaults-are-not-in-an-unintended-extra-dim-dark-state-compared-to-the-version-the-user-just-approved",
+      "featureTitle": "As part of go-live, ensure the deployed UI theme defaults are not in an unintended extra-dim/dark state compared to the version the user just approved.",
       "files": [
-        "frontend/src/pages/ProfileSetupPage.tsx"
+        "frontend/src/App.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -38,7 +36,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-48"
+        "REQ-2"
       ],
       "confidence": "high"
     }

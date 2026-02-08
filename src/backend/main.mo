@@ -11,12 +11,8 @@ import Time "mo:core/Time";
 import Nat32 "mo:core/Nat32";
 import Blob "mo:core/Blob";
 
-
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-
-// Run migration on every upgrade
-
 
 actor {
   type Language = {

@@ -7,7 +7,6 @@ import AssistantDashboard from './pages/AssistantDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import { UserRole } from './backend';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
-import { ThemeProvider } from './components/ThemeProvider';
 
 function AppContent() {
   const { identity, isInitializing } = useInternetIdentity();
@@ -15,6 +14,15 @@ function AppContent() {
   const [showProfileSetup, setShowProfileSetup] = useState(false);
 
   const isAuthenticated = !!identity;
+
+  // Theme normalization: ensure no stray dark class on fresh sessions
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('theme');
+    if (!storedTheme) {
+      // No persisted theme preference - ensure light mode
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated && !profileLoading && isFetched) {
@@ -74,9 +82,7 @@ function AppContent() {
 export default function App() {
   return (
     <AppErrorBoundary>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <AppContent />
-      </ThemeProvider>
+      <AppContent />
     </AppErrorBoundary>
   );
 }

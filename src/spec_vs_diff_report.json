@@ -1,36 +1,43 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T00:35:48.733Z",
-  "summary": "REQ-48 appears implemented by defaulting the Profile Setup language to Dutch while still allowing manual changes. REQ-47 is partially implemented by adding a NextThemes ThemeProvider with system theme support and CSS variables for dark mode, but the diff does not show any changes to the header theme dropdown to ensure it actually toggles Light/Dark/System across the app.",
+  "generatedAt": "2026-02-08T01:41:41.208Z",
+  "summary": "REQ-2 (theme default not unintentionally extra-dim/dark on fresh load) appears implemented via a guard in App.tsx that removes the `dark` class when no stored theme exists. REQ-1 (promote reviewed draft to live production so default/non-draft users get the draft’s exact frontend+backend) is not evidenced by the provided diff summary; changes shown look like build-trigger artifacts plus unrelated app logic changes, but no explicit promotion/routing/deployment switch is shown.",
   "missing_requirements": [
     {
-      "id": "REQ-47",
-      "requirement": "Using the header theme dropdown (Light/Dark/System) immediately updates the UI colors across all screens (login, profile setup, assistant dashboard, manager dashboard, to-do).",
-      "reason": "The app is wrapped in a next-themes ThemeProvider, but the diff summary includes no evidence of implementing or wiring the header dropdown to call next-themes (e.g., setTheme) so that selecting Light/Dark/System updates the UI.",
+      "id": "REQ-1",
+      "requirement": "Promote the currently reviewed draft build to the live/production deployment so end users load this version by default (live canister assets and backend match the current draft).",
+      "reason": "The diff summary does not show any deployment configuration change, canister IDs/environment switch, asset canister promotion, routing change from draft/preview to live, or any explicit mechanism ensuring the live deployment matches the reviewed draft. The shown changes (HTML build trigger comment and rebuild-trigger file) suggest a rebuild but do not demonstrate a draft-to-live promotion.",
       "evidence": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/ThemeProvider.tsx"
+        "frontend/index.html",
+        "frontend/public/rebuild-trigger.txt",
+        "backend/main.mo"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Defensive role-based rendering with an explicit \"unknown role\" fallback UI.",
-      "reason": "BuildRequest focuses only on dark mode behavior and default profile language; adding new role-fallback behavior is not requested.",
+      "description": "Added defensive role checks with an 'Unknown user role' fallback UI message.",
+      "reason": "Not requested by REQ-1/REQ-2; appears to be new user-facing logic unrelated to promotion or theme-default correction.",
+      "evidence": [
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "description": "Wrapped the app content in an AppErrorBoundary.",
+      "reason": "Not requested by REQ-1/REQ-2; adds new runtime behavior unrelated to promotion or theme-default correction.",
       "evidence": [
         "frontend/src/App.tsx"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.63,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
     "frontend/index.html",
+    "frontend/public/rebuild-trigger.txt",
     "frontend/src/App.tsx",
-    "frontend/src/components/ThemeProvider.tsx",
-    "frontend/src/index.css",
-    "frontend/src/pages/ProfileSetupPage.tsx",
     "project_state.json"
   ]
 }

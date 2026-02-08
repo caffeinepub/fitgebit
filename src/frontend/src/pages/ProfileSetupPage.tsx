@@ -11,7 +11,7 @@ import type { Language } from '../backend';
 
 export default function ProfileSetupPage() {
   const [username, setUsername] = useState('');
-  const [language, setLanguage] = useState<Language>('dutch' as Language);
+  const [language, setLanguage] = useState<Language>('english' as Language);
   const registerMutation = useRegisterAssistant();
 
   const handleSubmit = async (e: React.FormEvent) => {

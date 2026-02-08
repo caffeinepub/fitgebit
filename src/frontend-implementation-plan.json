@@ -1,53 +1,46 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix system-based dark mode and default Dutch language in profile setup",
+  "title": "Go-live promotion (frontend) and theme-default verification",
   "requirements": [
     {
-      "id": "REQ-47",
-      "summary": "Enable app-wide theme support with system detection and a working Light/Dark/System toggle that persists and reacts to OS changes.",
+      "id": "REQ-1",
+      "summary": "Ensure the live deployment serves the currently approved draft frontend build by triggering a fresh production asset build and avoiding any preview-only client behavior on default loads.",
       "acceptanceCriteria": [
-        "On first load in a fresh browser session (no prior theme saved), the app theme matches the OS/system preference (light/dark).",
-        "Using the header theme dropdown (Light/Dark/System) immediately updates the UI colors across all screens (login, profile setup, assistant dashboard, manager dashboard, to-do).",
-        "Selecting \"System\" makes the app follow OS changes (e.g., switching OS light->dark updates the app without requiring a reload).",
-        "Theme choice persists across reloads for that user in the same browser (per next-themes default behavior)."
+        "The live (non-draft) deployment serves the same frontend and backend code as the currently reviewed draft version.",
+        "Users who open the app without any preview/draft URL are routed to this promoted version.",
+        "No user-facing text is introduced that is not in English as part of the go-live process."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ThemeProvider.tsx",
-          "operation": "create",
-          "description": "Add a centralized next-themes ThemeProvider wrapper configured for class-based theming with system/device detection enabled and defaultTheme set to \"system\"."
-        },
-        {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/public/rebuild-trigger.txt",
           "operation": "modify",
-          "description": "Wrap the existing application content with the new ThemeProvider so theme changes apply across the entire app (Login, Profile Setup, Assistant Dashboard, Manager Dashboard, and To-Do UI)."
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Ensure global theme styles apply consistently by scoping background/foreground application to cover full-page rendering (e.g., apply base background/text styling in a way that affects all screens reliably when the theme class changes)."
+          "description": "Bump the rebuild marker (timestamp/version) to force CI/CD to publish the approved draft frontend bundle as the live canister asset set."
         },
         {
           "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Adjust the root document markup only as needed to support class-based theming across preview/live builds (e.g., ensure the theme class applied by next-themes can affect the whole document)."
+          "description": "Update the build-trigger comment to align with the production promotion build so caches/CDN artifacts are refreshed to the approved draft version."
         }
       ]
     },
     {
-      "id": "REQ-48",
-      "summary": "Default the Profile Setup language selector to Dutch for new users while preserving the ability to change it before creating a profile.",
+      "id": "REQ-2",
+      "summary": "Ensure theme defaults on first load match the approved draft and do not start in an unintended extra-dim/dark mode, while keeping the existing theme toggle behavior intact.",
       "acceptanceCriteria": [
-        "On the Profile Setup page, the \"Preferred Language\" field defaults to Dutch for a new user who has not interacted with the language selector.",
-        "The user can change the language to English or French and successfully create a profile with the selected language stored.",
-        "No other existing language selection functionality is removed or restricted."
+        "On a fresh load (new session, no persisted theme), the app does not render with an extra-dim/dark appearance inconsistent with the approved draft.",
+        "Theme toggle (if present) continues to work and does not force an unintended default on startup."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/ProfileSetupPage.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Change the initial language state so the Select defaults to Dutch for first-time profile setup without altering labels/buttons/toasts (keep all user-facing text in English) and without restricting manual changes."
+          "description": "Add a startup theme normalization guard that, on fresh sessions with no persisted theme preference, ensures the document does not start in an unintended dark/extra-dim state (e.g., remove a stray 'dark' class). Preserve any existing persisted user choice so the current theme toggle behavior remains unchanged."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Verify and, if needed, minimally adjust the base light/dark CSS variable tokens so default (non-persisted) rendering matches the approved draft (avoid overly dim background/foreground contrast)."
         }
       ]
     }

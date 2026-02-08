@@ -1,62 +1,51 @@
 {
   "kind": "build_request",
-  "title": "Fix dark mode (system theme) and set Dutch as default profile language",
-  "priority": "high",
+  "title": "Promote current draft build to live production deployment",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-47",
-      "text": "Fix dark mode so it applies across the entire app and works in both preview and live versions by enabling system/device theme detection and ensuring the theme toggle actually changes the UI.",
-      "target": "frontend",
+      "id": "REQ-1",
+      "text": "Promote the currently reviewed draft build to the live/production deployment so end users load this version by default (i.e., the live canister assets and backend match the current draft).",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-7",
-          "msg-12"
+          "msg-1"
         ],
         "quotes": [
-          "The dark mode isn't working",
-          "It should follow the device",
-          "Yes"
+          "Go live with this version"
         ]
       },
       "acceptanceCriteria": [
-        "On first load in a fresh browser session (no prior theme saved), the app theme matches the OS/system preference (light/dark).",
-        "Using the header theme dropdown (Light/Dark/System) immediately updates the UI colors across all screens (login, profile setup, assistant dashboard, manager dashboard, to-do).",
-        "Selecting \"System\" makes the app follow OS changes (e.g., switching OS light->dark updates the app without requiring a reload).",
-        "Theme choice persists across reloads for that user in the same browser (per next-themes default behavior)."
+        "The live (non-draft) deployment serves the same frontend and backend code as the currently reviewed draft version.",
+        "Users who open the app without any preview/draft URL are routed to this promoted version.",
+        "No user-facing text is introduced that is not in English as part of the go-live process."
       ]
     },
     {
-      "id": "REQ-48",
-      "text": "Set Dutch as the default language for new users during profile setup while still allowing users to manually change the language selection before creating their profile.",
+      "id": "REQ-2",
+      "text": "As part of go-live, ensure the deployed UI theme defaults are not in an unintended extra-dim/dark state compared to the version the user just approved.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-11",
-          "msg-13",
-          "msg-15"
+          "msg-1"
         ],
         "quotes": [
-          "Fix it please and make Dutch the standard language",
-          "I would like Dutch to be default language",
-          "Yes"
+          "Go live with this version"
         ]
       },
       "acceptanceCriteria": [
-        "On the Profile Setup page, the \"Preferred Language\" field defaults to Dutch for a new user who has not interacted with the language selector.",
-        "The user can change the language to English or French and successfully create a profile with the selected language stored.",
-        "No other existing language selection functionality is removed or restricted."
+        "On a fresh load (new session, no persisted theme), the app does not render with an extra-dim/dark appearance inconsistent with the approved draft.",
+        "Theme toggle (if present) continues to work and does not force an unintended default on startup."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (immutable paths).",
-    "Keep all user-facing text in English (labels, buttons, toasts, and error messages) in the implementation.",
-    "Do not introduce WebSockets or external services; use existing libraries already in the project (e.g., next-themes already referenced by the header)."
+    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
+    "Do not edit any frontend files in immutablePaths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui."
   ],
   "nonGoals": [
-    "Do not implement automatic translation of existing tasks or UI text when switching languages (only set Dutch as the default selection for new profiles).",
-    "Do not redesign the app UI beyond what is necessary to make dark mode function correctly."
+    "Adding new application features unrelated to the release promotion.",
+    "Changing data schemas or migrating state unless required to successfully deploy the approved draft as live."
   ],
   "imageRequirements": {
     "required": [],

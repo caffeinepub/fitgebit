@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T00:35:48.738Z",
+  "generatedAt": "2026-02-08T01:41:41.210Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,45 +11,41 @@
     "implemented": 2,
     "items": [
       {
-        "id": "REQ-47",
-        "summary": "Fix dark mode so it applies across the entire app and works in both preview and live versions by enabling system/device theme detection and ensuring the theme toggle actually changes the UI.",
+        "id": "REQ-1",
+        "summary": "Promote the currently reviewed draft build to the live/production deployment so end users load this version by default (i.e., the live canister assets and backend match the current draft).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ThemeProvider.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/index.css",
+          "frontend/public/rebuild-trigger.txt",
           "frontend/index.html"
         ],
         "matchedFiles": [
-          "frontend/src/components/ThemeProvider.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/index.css",
+          "frontend/public/rebuild-trigger.txt",
           "frontend/index.html"
         ]
       },
       {
-        "id": "REQ-48",
-        "summary": "Set Dutch as the default language for new users during profile setup while still allowing users to manually change the language selection before creating their profile.",
+        "id": "REQ-2",
+        "summary": "As part of go-live, ensure the deployed UI theme defaults are not in an unintended extra-dim/dark state compared to the version the user just approved.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/ProfileSetupPage.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/src/pages/ProfileSetupPage.tsx"
+          "frontend/src/App.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/index.html",
+    "frontend/public/rebuild-trigger.txt",
     "frontend/src/App.tsx",
-    "frontend/src/components/ThemeProvider.tsx",
-    "frontend/src/index.css",
-    "frontend/src/pages/ProfileSetupPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

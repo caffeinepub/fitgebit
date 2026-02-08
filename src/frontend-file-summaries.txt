@@ -1,8 +1,8 @@
 {
-  "frontend/src/App.tsx": "Main application component that handles authentication flow, profile setup, and routing between assistant and manager dashboards based on user role with defensive role checks, wrapped with error boundary and ThemeProvider for dark mode support.",
+  "frontend/src/App.tsx": "Main application component that handles authentication flow, profile setup, routing between assistant and manager dashboards based on user role with defensive role checks, wrapped with error boundary for crash protection, and includes theme normalization guard to prevent unintended dark mode on fresh sessions.",
   "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including task management, overtime tracking, task preferences, and new assistant task habits query for manager-only access.",
   "frontend/src/pages/LoginPage.tsx": "Landing page with FitGebit branding and Internet Identity login without \"overtime tracker\" terminology.",
-  "frontend/src/pages/ProfileSetupPage.tsx": "Profile setup page for new users to choose username and preferred language (English, Dutch, French) with Dutch as the default selection.",
+  "frontend/src/pages/ProfileSetupPage.tsx": "Profile setup page for new users to choose username and preferred language (English, Dutch, French).",
   "frontend/src/pages/AssistantDashboard.tsx": "Assistant dashboard with To-Do as default tab followed by overtime tracking with minutes-only entry form.",
   "frontend/src/pages/ManagerDashboard.tsx": "Manager dashboard with To-Do as default tab (including task preferences manager), followed by team overview with assistant list loading state, analytics with assistants prop, and audit log.",
   "frontend/src/components/Header.tsx": "Compact application header with FitGebit branding, user info, theme toggle, and logout button with reduced height.",
@@ -12,7 +12,7 @@
   "frontend/src/components/AssistantList.tsx": "Scrollable list of assistants with their overtime totals for manager selection.",
   "frontend/src/components/AssistantDetailView.tsx": "Detailed view of individual assistant with overtime totals, graph visualization, history table, CSV export, and new Task Habits section (manager-only) showing on-time metrics, task preferences, and completion history.",
   "frontend/src/components/ManagerAnalytics.tsx": "Analytics dashboard with team statistics, bar chart visualization of overtime distribution, and detailed breakdowns for all assistants with proper React Hooks usage at the top level.",
-  "frontend/src/index.css": "OKLCH color system with purple/blue theme, frequency-specific pastel colors, overtime cell colors, and comprehensive dark mode support with proper contrast ratios for all color tokens.",
+  "frontend/src/index.css": "OKLCH color system with purple/blue theme, frequency-specific pastel colors (green for daily, blue for weekly, purple for monthly) that intensify based on urgency level, and new overtime cell colors (pastel red for add, pastel green for use) for both light and dark modes.",
   "frontend/src/components/OvertimeChart.tsx": "Chart component that visualizes cumulative overtime trends over time using Recharts with line or bar chart variants, European date formatting, and minutes-only data from backend.",
   "frontend/src/utils/todoDates.ts": "Utility functions for task date calculations with Mon-Thu work schedule support, computing next due dates based on frequency only (daily rolls to next workday, weekly to next Monday, monthly to first Monday of next month), and urgency scoring without due-day dependencies.",
   "frontend/src/components/todo/ToDoTaskDialog.tsx": "Modal dialog for creating and editing tasks with title, description, and frequency inputs; includes destructive delete button with AlertDialog confirmation for edit mode that warns deletion is permanent and shows loading state during deletion.",
@@ -27,7 +27,7 @@
   "frontend/src/utils/overtimeStyles.ts": "Shared utility function that returns consistent className for overtime entry value cells based on whether the entry is add (pastel red) or use (pastel green).",
   "frontend/tailwind.config.js": "Tailwind configuration extending the theme with OKLCH color tokens including sidebar, chart, and new overtime add/use colors, custom border radius, box shadows, and accordion animations.",
   "frontend/src/utils/taskHabits.ts": "Utility functions for computing on-time metrics, formatting completion history, and rendering task preference labels/colors for the manager task habits view.",
-  "frontend/index.html": "HTML entry point with updated rebuild trigger comment to force new build artifact creation.",
-  "frontend/public/rebuild-trigger.txt": "Marker file containing timestamp and build version to ensure deployment pipeline detects source changes and produces a new build.",
-  "frontend/src/components/ThemeProvider.tsx": "Wrapper component for next-themes ThemeProvider configured for class-based theming with system detection enabled."
+  "frontend/index.html": "HTML entry point with updated rebuild trigger comment (2026-02-08T12:00:00Z) to force new build artifact creation.",
+  "frontend/public/rebuild-trigger.txt": "Marker file containing timestamp (2026-02-08T12:00:00Z) and build version (17) to ensure deployment pipeline detects source changes and produces a new build.",
+  "frontend/src/main.tsx": "Application entry point with QueryClient, InternetIdentityProvider, and ThemeProvider (defaultTheme=\"light\") wrapping the App component."
 }
