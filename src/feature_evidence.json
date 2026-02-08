@@ -2,11 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-trigger-a-fresh-rebuild-and-deployment-of-the-latest-fitgebit-code-option-2-rather-than-publishing-the-already-deployed-draft-version-11-as-is",
-      "featureTitle": "Trigger a fresh rebuild and deployment of the latest FitGebit code (option 2), rather than publishing the already-deployed Draft Version 11 as-is.",
+      "featureId": "feature-fix-dark-mode-so-it-applies-across-the-entire-app-and-works-in-both-preview-and-live-versions-by-enabling-system-device-theme-detection-and-ensuring-the-theme-toggle-actually-changes-the-ui",
+      "featureTitle": "Fix dark mode so it applies across the entire app and works in both preview and live versions by enabling system/device theme detection and ensuring the theme toggle actually changes the UI.",
       "files": [
         "frontend/index.html",
-        "frontend/public/rebuild-trigger.txt"
+        "frontend/src/App.tsx",
+        "frontend/src/components/ThemeProvider.tsx",
+        "frontend/src/index.css"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,7 +19,26 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-46"
+        "REQ-47"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-set-dutch-as-the-default-language-for-new-users-during-profile-setup-while-still-allowing-users-to-manually-change-the-language-selection-before-creating-their-profile",
+      "featureTitle": "Set Dutch as the default language for new users during profile setup while still allowing users to manually change the language selection before creating their profile.",
+      "files": [
+        "frontend/src/pages/ProfileSetupPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-48"
       ],
       "confidence": "high"
     }

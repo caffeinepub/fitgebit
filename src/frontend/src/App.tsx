@@ -7,6 +7,7 @@ import AssistantDashboard from './pages/AssistantDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import { UserRole } from './backend';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { ThemeProvider } from './components/ThemeProvider';
 
 function AppContent() {
   const { identity, isInitializing } = useInternetIdentity();
@@ -73,7 +74,9 @@ function AppContent() {
 export default function App() {
   return (
     <AppErrorBoundary>
-      <AppContent />
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AppContent />
+      </ThemeProvider>
     </AppErrorBoundary>
   );
 }

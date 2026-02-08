@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 21,
+  "projectStateVersion": 23,
   "summary": "FitGebit app for a Belgian dental practice: Internet Identity auth with roles (Assistants/Manager), assistant overtime tracking (assistants enter minutes only; manager oversight/export), plus a shared collaborative to-do list with audit logging, notifications, multilingual UI, and enhanced task operations (frequency selection retained but due-day selection removed and existing due dates wiped; main list hides frequency column; recurrence rolls to next Monday with monthly to first Monday of next month; urgency remains frequency-based; pinned priority, real-time updates, compact/mobile-friendly UI, and per-task completion evidence via comments + photos with a user-visible task history ledger).",
   "architectural_notes": [
     "Use Internet Identity principals for authentication; store a per-principal unique username on first login.",
@@ -16,9 +16,10 @@
   ],
   "known_issues": [
     "Build/deploy pipeline failed with 'Our AI couldn't handle that request' when starting implementation; user requested rerun.",
-    "Draft preview shows a plain black screen after recent changes (app likely crashing on startup / dashboard render), user requested a fix."
+    "Draft preview shows a plain black screen after recent changes (app likely crashing on startup / dashboard render), user requested a fix.",
+    "Dark mode is not working across the whole app: toggling does nothing (observed in both Version 12 preview and the published live version)."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-keep-the-application-name-and-branding-as-fitgebit-across-the-ui-login-profile-setup-header-and-dashboards-and-ensure-all-user-facing-text-is-in-english-while-retaining-language-selection-support-for-dutch-french-english-in-user-profiles",
@@ -339,6 +340,22 @@
         "REQ-46"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-fix-dark-mode-so-it-applies-across-the-entire-app-and-works-in-both-preview-and-live-versions-by-enabling-system-device-theme-detection-and-ensuring-the-theme-toggle-actually-changes-the-ui",
+      "title": "Fix dark mode so it applies across the entire app and works in both preview and live versions by enabling system/device theme detection and ensuring the theme toggle actually changes the UI.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-set-dutch-as-the-default-language-for-new-users-during-profile-setup-while-still-allowing-users-to-manually-change-the-language-selection-before-creating-their-profile",
+      "title": "Set Dutch as the default language for new users during profile setup while still allowing users to manually change the language selection before creating their profile.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -568,6 +585,18 @@
       "reqIds": [
         "REQ-42"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Fix dark mode: currently toggle has no effect across the whole app; dark mode should follow device/system preference (works in both preview and live).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Set Dutch as the default language for new users while still allowing users to manually change language in their profile/settings.",
+      "reqIds": [],
       "status": "pending"
     }
   ],

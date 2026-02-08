@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Trigger a fresh rebuild and deployment of the latest FitGebit codebase (option 2), rather than publishing the already-built Draft Version 11 artifact.
+**Goal:** Make dark mode work reliably across the entire app by honoring system theme by default and ensuring the theme toggle updates the UI, and set Dutch as the default language selection for new users during profile setup.
 
 **Planned changes:**
-- Produce a new build from the current FitGebit codebase (do not reuse the Draft Version 11 build artifact).
-- Deploy the newly built version to the platform deployment URL.
-- Ensure the deployed build is the intended live/production version if the platform distinguishes between draft and live.
+- Update theme handling so first load defaults to OS/system preference when no theme is saved, and ensure Light/Dark/System selection applies immediately across all app screens.
+- Ensure “System” theme follows OS theme changes in real time (without requiring a reload).
+- Persist the selected theme choice across reloads (using existing behavior in the app’s theming library).
+- Change Profile Setup so “Preferred Language” defaults to Dutch for new users until they manually select a different language, while keeping English/French selectable and stored on profile creation.
 
-**User-visible outcome:** Testers/users can access the newly rebuilt and deployed FitGebit version via the platform’s deployment URL, with no changes to app features or UI text.
+**User-visible outcome:** On first visit the app matches the device light/dark setting; switching the header theme setting instantly updates all screens and “System” tracks OS changes. On profile setup, the language selector starts on Dutch by default but can still be changed to English or French before creating a profile.

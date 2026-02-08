@@ -1,38 +1,75 @@
 {
   "kind": "build_request",
-  "title": "Trigger a fresh rebuild and deployment (option 2)",
-  "priority": "normal",
+  "title": "Fix dark mode (system theme) and set Dutch as default profile language",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-46",
-      "text": "Trigger a fresh rebuild and deployment of the latest FitGebit code (option 2), rather than publishing the already-deployed Draft Version 11 as-is.",
-      "target": "unknown",
+      "id": "REQ-47",
+      "text": "Fix dark mode so it applies across the entire app and works in both preview and live versions by enabling system/device theme detection and ensuring the theme toggle actually changes the UI.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-8"
+          "msg-4",
+          "msg-7",
+          "msg-12"
         ],
         "quotes": [
-          "No do 2"
+          "The dark mode isn't working",
+          "It should follow the device",
+          "Yes"
         ]
       },
       "acceptanceCriteria": [
-        "A new build is produced from the current codebase (not reusing the previous Draft Version 11 artifact).",
-        "The newly built version is deployed successfully and is accessible to testers/users via the platform’s deployment URL.",
-        "If the platform distinguishes between draft and live, the rebuilt version is the one intended for production/live availability (not left as an unpublished draft).",
-        "No application features or user-facing UI text are changed as part of this request; this is a deployment action only."
+        "On first load in a fresh browser session (no prior theme saved), the app theme matches the OS/system preference (light/dark).",
+        "Using the header theme dropdown (Light/Dark/System) immediately updates the UI colors across all screens (login, profile setup, assistant dashboard, manager dashboard, to-do).",
+        "Selecting \"System\" makes the app follow OS changes (e.g., switching OS light->dark updates the app without requiring a reload).",
+        "Theme choice persists across reloads for that user in the same browser (per next-themes default behavior)."
+      ]
+    },
+    {
+      "id": "REQ-48",
+      "text": "Set Dutch as the default language for new users during profile setup while still allowing users to manually change the language selection before creating their profile.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-11",
+          "msg-13",
+          "msg-15"
+        ],
+        "quotes": [
+          "Fix it please and make Dutch the standard language",
+          "I would like Dutch to be default language",
+          "Yes"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On the Profile Setup page, the \"Preferred Language\" field defaults to Dutch for a new user who has not interacted with the language selector.",
+        "The user can change the language to English or French and successfully create a profile with the selected language stored.",
+        "No other existing language selection functionality is removed or restricted."
       ]
     }
   ],
   "constraints": [
-    "Do not change any application functionality; only perform the rebuild/deploy action requested.",
-    "Keep all user-facing text in English (no new UI copy changes are required for this deployment-only request)."
+    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (immutable paths).",
+    "Keep all user-facing text in English (labels, buttons, toasts, and error messages) in the implementation.",
+    "Do not introduce WebSockets or external services; use existing libraries already in the project (e.g., next-themes already referenced by the header)."
   ],
   "nonGoals": [
-    "Implementing new FitGebit features or UI refinements.",
-    "Fixing unrelated issues (e.g., the previously mentioned black-screen crash) unless required to make the rebuild succeed."
+    "Do not implement automatic translation of existing tasks or UI text when switching languages (only set Dutch as the default selection for new profiles).",
+    "Do not redesign the app UI beyond what is necessary to make dark mode function correctly."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

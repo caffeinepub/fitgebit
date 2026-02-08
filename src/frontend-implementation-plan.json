@@ -1,27 +1,53 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "FitGebit fresh rebuild/deploy trigger (deployment-only)",
+  "title": "Fix system-based dark mode and default Dutch language in profile setup",
   "requirements": [
     {
-      "id": "REQ-46",
-      "summary": "Trigger a fresh rebuild/deployment from the latest code without changing application behavior or UI copy.",
+      "id": "REQ-47",
+      "summary": "Enable app-wide theme support with system detection and a working Light/Dark/System toggle that persists and reacts to OS changes.",
       "acceptanceCriteria": [
-        "A new build is produced from the current codebase (not reusing the previous Draft Version 11 artifact).",
-        "The newly built version is deployed successfully and is accessible to testers/users via the platform’s deployment URL.",
-        "If the platform distinguishes between draft and live, the rebuilt version is the one intended for production/live availability (not left as an unpublished draft).",
-        "No application features or user-facing UI text are changed as part of this request; this is a deployment action only."
+        "On first load in a fresh browser session (no prior theme saved), the app theme matches the OS/system preference (light/dark).",
+        "Using the header theme dropdown (Light/Dark/System) immediately updates the UI colors across all screens (login, profile setup, assistant dashboard, manager dashboard, to-do).",
+        "Selecting \"System\" makes the app follow OS changes (e.g., switching OS light->dark updates the app without requiring a reload).",
+        "Theme choice persists across reloads for that user in the same browser (per next-themes default behavior)."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/rebuild-trigger.txt",
+          "path": "frontend/src/components/ThemeProvider.tsx",
           "operation": "create",
-          "description": "Add a rebuild marker file (e.g., containing a timestamp or build-note) to ensure a new frontend artifact is produced; do not reference this file from the UI and do not add user-facing text."
+          "description": "Add a centralized next-themes ThemeProvider wrapper configured for class-based theming with system/device detection enabled and defaultTheme set to \"system\"."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wrap the existing application content with the new ThemeProvider so theme changes apply across the entire app (Login, Profile Setup, Assistant Dashboard, Manager Dashboard, and To-Do UI)."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Ensure global theme styles apply consistently by scoping background/foreground application to cover full-page rendering (e.g., apply base background/text styling in a way that affects all screens reliably when the theme class changes)."
         },
         {
           "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Add/adjust a non-rendered HTML comment noting the rebuild trigger (no changes to visible UI text, title, or functionality) to ensure the deployment pipeline detects a source change."
+          "description": "Adjust the root document markup only as needed to support class-based theming across preview/live builds (e.g., ensure the theme class applied by next-themes can affect the whole document)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-48",
+      "summary": "Default the Profile Setup language selector to Dutch for new users while preserving the ability to change it before creating a profile.",
+      "acceptanceCriteria": [
+        "On the Profile Setup page, the \"Preferred Language\" field defaults to Dutch for a new user who has not interacted with the language selector.",
+        "The user can change the language to English or French and successfully create a profile with the selected language stored.",
+        "No other existing language selection functionality is removed or restricted."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ProfileSetupPage.tsx",
+          "operation": "modify",
+          "description": "Change the initial language state so the Select defaults to Dutch for first-time profile setup without altering labels/buttons/toasts (keep all user-facing text in English) and without restricting manual changes."
         }
       ]
     }
