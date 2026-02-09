@@ -16,98 +16,10 @@ export interface AssistantRegistrationPayload {
   'initials' : string,
   'language' : Language,
 }
-export interface AssistantTaskCompletionRecord {
-  'completedOnTime' : boolean,
-  'taskTitle' : string,
-  'taskId' : bigint,
-  'frequency' : TaskFrequency,
-  'completionTimestamp' : Time,
-}
-export interface AssistantTaskHabits {
-  'completions' : Array<AssistantTaskCompletionRecord>,
-  'summary' : AssistantTaskSummary,
-}
-export interface AssistantTaskSummary {
-  'dailyTasks' : bigint,
-  'totalTasks' : bigint,
-  'username' : string,
-  'completedTasks' : bigint,
-  'taskPreferences' : Array<[bigint, TaskPreference]>,
-  'weeklyTasks' : bigint,
-  'monthlyTasks' : bigint,
-  'onTimeTasks' : bigint,
-}
-export type AuditLogAction = { 'taskUpdated' : null } |
-  { 'taskCreated' : null } |
-  { 'taskMarkedDone' : null };
-export interface AuditLogEntry {
-  'action' : AuditLogAction,
-  'username' : string,
-  'taskId' : bigint,
-  'userPrincipal' : Principal,
-  'timestamp' : Time,
-  'changeSummary' : string,
-}
-export interface Avatar {
-  'id' : bigint,
-  'blob' : ExternalBlob,
-  'name' : string,
-  'description' : string,
-}
 export type ExternalBlob = Uint8Array;
 export type Language = { 'french' : null } |
   { 'dutch' : null } |
   { 'english' : null };
-export interface OvertimeEntry {
-  'date' : string,
-  'minutes' : bigint,
-  'comment' : string,
-  'timestamp' : Time,
-  'isAdd' : boolean,
-}
-export interface OvertimeTotals {
-  'totalHours' : bigint,
-  'totalDays' : bigint,
-  'totalMinutes' : bigint,
-}
-export type TaskFrequency = { 'monthly' : null } |
-  { 'daily' : null } |
-  { 'weekly' : null };
-export interface TaskHistoryEntry {
-  'id' : bigint,
-  'action' : AuditLogAction,
-  'username' : string,
-  'completedOnTime' : [] | [boolean],
-  'evidencePhoto' : [] | [ExternalBlob],
-  'summary' : string,
-  'taskId' : bigint,
-  'userPrincipal' : Principal,
-  'completionComment' : [] | [string],
-  'userProfilePicture' : [] | [ExternalBlob],
-  'timestamp' : Time,
-  'userAvatar' : [] | [Avatar],
-  'userInitials' : string,
-}
-export type TaskPreference = { 'hated' : null } |
-  { 'preferred' : null } |
-  { 'neutral' : null };
-export type Time = bigint;
-export interface ToDoTask {
-  'id' : bigint,
-  'completedBy' : [] | [Principal],
-  'title' : string,
-  'createdAt' : Time,
-  'createdBy' : Principal,
-  'lastCompleted' : [] | [Time],
-  'isWeekly' : boolean,
-  'description' : string,
-  'evidencePhoto' : [] | [ExternalBlob],
-  'completionComment' : [] | [string],
-  'completedByUsername' : [] | [string],
-  'frequency' : TaskFrequency,
-  'completionTimestamp' : [] | [Time],
-  'isPinned' : boolean,
-}
 export interface UserProfile {
   'presetAvatarId' : [] | [bigint],
   'principal' : Principal,
@@ -151,49 +63,12 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
-  'checkManagerNotifications' : ActorMethod<[], boolean>,
-  'createTask' : ActorMethod<[string, string, TaskFrequency, boolean], bigint>,
-  'deleteAssistantData' : ActorMethod<[Principal], undefined>,
-  'editLatestOvertimeEntry' : ActorMethod<[string, OvertimeEntry], undefined>,
-  'getAllAssistants' : ActorMethod<[], Array<UserProfile>>,
-  'getAllAvatars' : ActorMethod<[], Array<Avatar>>,
-  'getAllTaskHistory' : ActorMethod<[], Array<TaskHistoryEntry>>,
-  'getAllTaskHistoryEntries' : ActorMethod<[], Array<TaskHistoryEntry>>,
-  'getAllTasks' : ActorMethod<[], Array<ToDoTask>>,
-  'getAssistantTaskHabits' : ActorMethod<[string], AssistantTaskHabits>,
-  'getAuditLog' : ActorMethod<[], Array<AuditLogEntry>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,
-  'getOvertimeEntries' : ActorMethod<[string], Array<OvertimeEntry>>,
-  'getOvertimeTotals' : ActorMethod<[string], OvertimeTotals>,
-  'getTask' : ActorMethod<[bigint], [] | [ToDoTask]>,
-  'getTaskHistory' : ActorMethod<[bigint], Array<TaskHistoryEntry>>,
-  'getTaskPreferences' : ActorMethod<[string], Array<[bigint, TaskPreference]>>,
-  'getUnlockedAvatarIds' : ActorMethod<[], Array<bigint>>,
-  'getUnlockedAvatars' : ActorMethod<[], Array<Avatar>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'logOvertime' : ActorMethod<[string, bigint, string, boolean], undefined>,
-  'markTaskDone' : ActorMethod<
-    [bigint, [] | [ExternalBlob], [] | [string]],
-    undefined
-  >,
   'registerAssistant' : ActorMethod<[AssistantRegistrationPayload], boolean>,
-  'resetUsersAndClearOrphanedState' : ActorMethod<[boolean], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'setPresetAvatar' : ActorMethod<[bigint], Avatar>,
-  'setTaskPinnedStatus' : ActorMethod<[bigint, boolean], undefined>,
-  'setTaskPreference' : ActorMethod<
-    [string, bigint, TaskPreference],
-    undefined
-  >,
-  'updateTask' : ActorMethod<
-    [bigint, string, string, TaskFrequency, boolean],
-    undefined
-  >,
-  'uploadAvatar' : ActorMethod<[string, string, ExternalBlob], Avatar>,
-  'uploadProfilePicture' : ActorMethod<[ExternalBlob], ExternalBlob>,
-  'wipeStorage' : ActorMethod<[], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

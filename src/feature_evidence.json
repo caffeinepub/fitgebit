@@ -2,12 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-profile-registration-flow-so-a-newly-authenticated-internet-identity-user-can-successfully-create-a-user-profile-from-the-profile-setup-page-and-then-proceed-into-the-app-assistant-or-manager-dashboard-as-applicable",
-      "featureTitle": "Fix the profile registration flow so a newly authenticated Internet Identity user can successfully create a user profile from the Profile Setup page and then proceed into the app (assistant or manager dashboard as applicable).",
+      "featureId": "feature-update-the-authenticated-app-bootstrap-flow-so-that-failures-to-fetch-the-caller-profile-e-g-authorization-access-control-not-initialized-do-not-result-in-a-stuck-loading-state-and-instead-show-a-clear-error-state-with-a-retry-option-and-a-way-to-re-authenticate",
+      "featureTitle": "Update the authenticated app bootstrap flow so that failures to fetch the caller profile (e.g., authorization/access-control not initialized) do not result in a stuck loading state, and instead show a clear error state with a retry option and a way to re-authenticate.",
       "files": [
         "frontend/src/App.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/ProfileSetupPage.tsx"
+        "frontend/src/components/AuthBootstrapErrorScreen.tsx",
+        "frontend/src/utils/userFacingError.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -25,11 +25,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-frontend-registration-success-handling-so-that-the-app-immediately-reflects-the-newly-created-profile-no-manual-refresh-required",
-      "featureTitle": "Update the frontend registration success handling so that the app immediately reflects the newly created profile (no manual refresh required).",
+      "featureId": "feature-ensure-the-profile-creation-ui-provides-explicit-user-visible-feedback-when-profile-creation-fails-including-backend-trap-messages-rather-than-appearing-to-do-nothing",
+      "featureTitle": "Ensure the profile creation UI provides explicit, user-visible feedback when profile creation fails (including backend trap messages), rather than appearing to do nothing.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/ProfileSetupPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -42,7 +42,7 @@
         "camera@1.0.0"
       ],
       "testIds": [
-        "REQ-3"
+        "REQ-4"
       ],
       "confidence": "high"
     }

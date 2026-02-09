@@ -1,13 +1,10 @@
 module {
-  type OldActor = {
-    // old state, not needed so can be empty
+  type Actor = {
+    // Must match the old actor state
   };
 
-  type NewActor = {
-    // new state, not needed so can be empty
+  public func run(old : Actor) : Actor {
+    // No changes needed, just return old state
+    old;
   };
-
-  public func run(old : OldActor) : NewActor {
-    { /* new state */ };
-  };
-};
+}

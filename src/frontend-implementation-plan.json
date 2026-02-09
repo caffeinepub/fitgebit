@@ -1,51 +1,53 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix profile setup registration to enter dashboard",
+  "title": "Unstick authenticated bootstrap + show clear registration errors for first-time users",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix Profile Setup submission so newly authenticated Internet Identity users can create a profile and proceed into the app with clear failure recovery.",
+      "summary": "Show a clear error state (with retry + sign out) when authenticated profile fetch fails, instead of an infinite loading screen.",
       "acceptanceCriteria": [
-        "After logging in with Internet Identity and completing Profile Setup (username, initials, optional overtime, language), clicking “Create Profile” results in the user being routed into the app (not stuck on the Profile Setup page).",
-        "If profile creation fails, the UI shows a clear error (toast is acceptable) and the “Create Profile” button becomes clickable again (no permanent pending/disabled state).",
-        "The backend registration endpoint used by the frontend (`registerAssistant`) succeeds for a first-time user (no existing `UserProfile`) and persists the created profile so that subsequent calls to `getCallerUserProfile` return a non-null profile for that caller."
+        "When a user is authenticated but `useGetCallerUserProfile()` fails, the UI does not loop indefinitely on \"Loading\" / \"Loading profile...\".",
+        "A visible error message is shown in English explaining that the profile could not be loaded, with at least: a \"Retry\" action (refetch) and a \"Sign out\" (or equivalent) action to re-authenticate.",
+        "After clicking \"Retry\", the app attempts to refetch the caller profile and proceeds normally if it succeeds.",
+        "No changes are made to immutable hook files under `frontend/src/hooks/useInternetIdentity.ts(x)` or `frontend/src/hooks/useActor.ts`."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Harden `useRegisterAssistant` so it treats a falsy/failed `registerAssistant` response as an error (throw with explicit message), and on success performs a reliable profile refresh by invalidating and actively refetching `currentUserProfile` (and any minimal dependent caches). This ensures the UI does not show a false success toast while remaining on Profile Setup. Use the authorization component’s guidance for handling auth-related traps/errors gracefully; verify the component's usage instructions before implementing."
+          "path": "frontend/src/components/AuthBootstrapErrorScreen.tsx",
+          "operation": "create",
+          "description": "Create an authenticated-bootstrap error screen that explains (in English) the caller profile could not be loaded, and provides actions for Retry (calls a provided refetch callback) and Sign out (calls a provided re-auth callback). Use the selected `authorization` component guidance for handling authorization/trap errors and re-auth flows; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/ProfileSetupPage.tsx",
-          "operation": "modify",
-          "description": "Update submit handling to: (1) only show success feedback when the registration mutation truly succeeded, (2) surface backend validation/auth errors clearly via English toasts, and (3) ensure the form can be resubmitted after failures (no lingering disabled state). Keep the existing optional overtime input behavior but ensure any conversion/validation error is shown as a toast and re-enables the button. Verify the component's usage instructions before implementing."
+          "path": "frontend/src/utils/userFacingError.ts",
+          "operation": "create",
+          "description": "Add a small utility to map thrown errors (including backend trap messages such as \"Unauthorized\") into stable, user-facing English messages suitable for bootstrap and registration UIs."
         },
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Remove/avoid stale local `showProfileSetup` state that can keep users stuck after registration; instead derive the Profile Setup visibility directly from auth + profile query state (per the authorization component’s “Preventing Profile Setup Modal Flash” pattern). Ensure that once `currentUserProfile` becomes non-null, the app renders the correct dashboard (assistant/manager) without requiring a manual refresh. Verify the component's usage instructions before implementing."
+          "description": "Update the authenticated app bootstrap flow to handle `useGetCallerUserProfile()` errors: render `AuthBootstrapErrorScreen` when the profile query is in an error state (instead of showing \"Loading\" / \"Loading profile...\" forever), wire Retry to the query's `refetch()`, and wire Sign out to `useInternetIdentity().clear()` plus clearing React Query cached data. Use the selected `authorization` component guidance for clearing cached application data on logout; verify the component's usage instructions before implementing. Do not modify immutable hook files."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Make registration success immediately reflect the newly created profile in the UI with a consistent loading transition into the dashboard.",
+      "id": "REQ-4",
+      "summary": "Provide explicit, persistent, user-visible error feedback on profile creation failure and ensure successful registration transitions into the dashboard without refresh.",
       "acceptanceCriteria": [
-        "After `useRegisterAssistant()` succeeds, the frontend triggers a reliable refresh of the current profile (e.g., refetch or cache update) so `App.tsx` stops rendering `ProfileSetupPage` and renders the correct dashboard.",
-        "The user sees a consistent loading state during the transition (no blank screen) and ends up on the dashboard within a short time after success."
+        "If `registerAssistant` fails, the Profile Setup page shows an explicit error state/message in English (not only a silent failure).",
+        "The submit button returns to an enabled state after a failed attempt, allowing the user to try again.",
+        "On successful profile creation, the app proceeds into the correct dashboard without requiring a manual refresh."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/ProfileSetupPage.tsx",
           "operation": "modify",
-          "description": "Ensure registration success triggers an immediate, reliable refresh of `currentUserProfile` (not only a passive invalidation) so App state transitions away from Profile Setup quickly and deterministically. Verify the component's usage instructions before implementing."
+          "description": "Add an explicit on-page error state (e.g., a destructive Alert area) that becomes visible when `registerAssistant` fails, including backend trap messages when safe to show, using the shared error-to-message utility. Ensure the error state clears on new attempts/success. Keep the submit button enabled after failures by relying on mutation state and not leaving the form stuck. Continue to rely on the existing registration mutation refetch/invalidation so that, on success, App transitions into the correct dashboard without manual refresh. Use the selected `authorization` component guidance for graceful handling of authorization traps; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Ensure the post-registration transition always renders an intentional loading state while `currentUserProfile` is being refetched (no blank screen), and that the rendering logic switches to the appropriate dashboard as soon as the profile data arrives. Align the derived `showProfileSetup` logic with the authorization component’s recommended gating to prevent UI flash and stuck states; verify the component's usage instructions before implementing."
+          "description": "Harden the `useRegisterAssistant` mutation error propagation so that failures return actionable messages to the UI (preserving backend trap message text when present), and ensure the existing post-success invalidation/refetch of `currentUserProfile` remains in place to trigger the dashboard transition."
         }
       ]
     }

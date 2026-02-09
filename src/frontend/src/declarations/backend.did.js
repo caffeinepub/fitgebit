@@ -24,19 +24,6 @@ export const UserRole__1 = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
-export const TaskFrequency = IDL.Variant({
-  'monthly' : IDL.Null,
-  'daily' : IDL.Null,
-  'weekly' : IDL.Null,
-});
-export const Time = IDL.Int;
-export const OvertimeEntry = IDL.Record({
-  'date' : IDL.Text,
-  'minutes' : IDL.Nat,
-  'comment' : IDL.Text,
-  'timestamp' : Time,
-  'isAdd' : IDL.Bool,
-});
 export const UserRole = IDL.Variant({
   'manager' : IDL.Null,
   'assistant' : IDL.Null,
@@ -55,87 +42,6 @@ export const UserProfile = IDL.Record({
   'initials' : IDL.Text,
   'language' : Language,
   'profilePicture' : IDL.Opt(ExternalBlob),
-});
-export const Avatar = IDL.Record({
-  'id' : IDL.Nat,
-  'blob' : ExternalBlob,
-  'name' : IDL.Text,
-  'description' : IDL.Text,
-});
-export const AuditLogAction = IDL.Variant({
-  'taskUpdated' : IDL.Null,
-  'taskCreated' : IDL.Null,
-  'taskMarkedDone' : IDL.Null,
-});
-export const TaskHistoryEntry = IDL.Record({
-  'id' : IDL.Nat,
-  'action' : AuditLogAction,
-  'username' : IDL.Text,
-  'completedOnTime' : IDL.Opt(IDL.Bool),
-  'evidencePhoto' : IDL.Opt(ExternalBlob),
-  'summary' : IDL.Text,
-  'taskId' : IDL.Nat,
-  'userPrincipal' : IDL.Principal,
-  'completionComment' : IDL.Opt(IDL.Text),
-  'userProfilePicture' : IDL.Opt(ExternalBlob),
-  'timestamp' : Time,
-  'userAvatar' : IDL.Opt(Avatar),
-  'userInitials' : IDL.Text,
-});
-export const ToDoTask = IDL.Record({
-  'id' : IDL.Nat,
-  'completedBy' : IDL.Opt(IDL.Principal),
-  'title' : IDL.Text,
-  'createdAt' : Time,
-  'createdBy' : IDL.Principal,
-  'lastCompleted' : IDL.Opt(Time),
-  'isWeekly' : IDL.Bool,
-  'description' : IDL.Text,
-  'evidencePhoto' : IDL.Opt(ExternalBlob),
-  'completionComment' : IDL.Opt(IDL.Text),
-  'completedByUsername' : IDL.Opt(IDL.Text),
-  'frequency' : TaskFrequency,
-  'completionTimestamp' : IDL.Opt(Time),
-  'isPinned' : IDL.Bool,
-});
-export const AssistantTaskCompletionRecord = IDL.Record({
-  'completedOnTime' : IDL.Bool,
-  'taskTitle' : IDL.Text,
-  'taskId' : IDL.Nat,
-  'frequency' : TaskFrequency,
-  'completionTimestamp' : Time,
-});
-export const TaskPreference = IDL.Variant({
-  'hated' : IDL.Null,
-  'preferred' : IDL.Null,
-  'neutral' : IDL.Null,
-});
-export const AssistantTaskSummary = IDL.Record({
-  'dailyTasks' : IDL.Nat,
-  'totalTasks' : IDL.Nat,
-  'username' : IDL.Text,
-  'completedTasks' : IDL.Nat,
-  'taskPreferences' : IDL.Vec(IDL.Tuple(IDL.Nat, TaskPreference)),
-  'weeklyTasks' : IDL.Nat,
-  'monthlyTasks' : IDL.Nat,
-  'onTimeTasks' : IDL.Nat,
-});
-export const AssistantTaskHabits = IDL.Record({
-  'completions' : IDL.Vec(AssistantTaskCompletionRecord),
-  'summary' : AssistantTaskSummary,
-});
-export const AuditLogEntry = IDL.Record({
-  'action' : AuditLogAction,
-  'username' : IDL.Text,
-  'taskId' : IDL.Nat,
-  'userPrincipal' : IDL.Principal,
-  'timestamp' : Time,
-  'changeSummary' : IDL.Text,
-});
-export const OvertimeTotals = IDL.Record({
-  'totalHours' : IDL.Nat,
-  'totalDays' : IDL.Nat,
-  'totalMinutes' : IDL.Nat,
 });
 export const AssistantRegistrationPayload = IDL.Record({
   'username' : IDL.Text,
@@ -173,80 +79,20 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
-  'checkManagerNotifications' : IDL.Func([], [IDL.Bool], []),
-  'createTask' : IDL.Func(
-      [IDL.Text, IDL.Text, TaskFrequency, IDL.Bool],
-      [IDL.Nat],
-      [],
-    ),
-  'deleteAssistantData' : IDL.Func([IDL.Principal], [], []),
-  'editLatestOvertimeEntry' : IDL.Func([IDL.Text, OvertimeEntry], [], []),
-  'getAllAssistants' : IDL.Func([], [IDL.Vec(UserProfile)], ['query']),
-  'getAllAvatars' : IDL.Func([], [IDL.Vec(Avatar)], ['query']),
-  'getAllTaskHistory' : IDL.Func([], [IDL.Vec(TaskHistoryEntry)], ['query']),
-  'getAllTaskHistoryEntries' : IDL.Func(
-      [],
-      [IDL.Vec(TaskHistoryEntry)],
-      ['query'],
-    ),
-  'getAllTasks' : IDL.Func([], [IDL.Vec(ToDoTask)], ['query']),
-  'getAssistantTaskHabits' : IDL.Func(
-      [IDL.Text],
-      [AssistantTaskHabits],
-      ['query'],
-    ),
-  'getAuditLog' : IDL.Func([], [IDL.Vec(AuditLogEntry)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
-  'getOvertimeEntries' : IDL.Func(
-      [IDL.Text],
-      [IDL.Vec(OvertimeEntry)],
-      ['query'],
-    ),
-  'getOvertimeTotals' : IDL.Func([IDL.Text], [OvertimeTotals], ['query']),
-  'getTask' : IDL.Func([IDL.Nat], [IDL.Opt(ToDoTask)], ['query']),
-  'getTaskHistory' : IDL.Func(
-      [IDL.Nat],
-      [IDL.Vec(TaskHistoryEntry)],
-      ['query'],
-    ),
-  'getTaskPreferences' : IDL.Func(
-      [IDL.Text],
-      [IDL.Vec(IDL.Tuple(IDL.Nat, TaskPreference))],
-      ['query'],
-    ),
-  'getUnlockedAvatarIds' : IDL.Func([], [IDL.Vec(IDL.Nat)], ['query']),
-  'getUnlockedAvatars' : IDL.Func([], [IDL.Vec(Avatar)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'logOvertime' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text, IDL.Bool], [], []),
-  'markTaskDone' : IDL.Func(
-      [IDL.Nat, IDL.Opt(ExternalBlob), IDL.Opt(IDL.Text)],
-      [],
-      [],
-    ),
   'registerAssistant' : IDL.Func(
       [AssistantRegistrationPayload],
       [IDL.Bool],
       [],
     ),
-  'resetUsersAndClearOrphanedState' : IDL.Func([IDL.Bool], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-  'setPresetAvatar' : IDL.Func([IDL.Nat], [Avatar], []),
-  'setTaskPinnedStatus' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
-  'setTaskPreference' : IDL.Func([IDL.Text, IDL.Nat, TaskPreference], [], []),
-  'updateTask' : IDL.Func(
-      [IDL.Nat, IDL.Text, IDL.Text, TaskFrequency, IDL.Bool],
-      [],
-      [],
-    ),
-  'uploadAvatar' : IDL.Func([IDL.Text, IDL.Text, ExternalBlob], [Avatar], []),
-  'uploadProfilePicture' : IDL.Func([ExternalBlob], [ExternalBlob], []),
-  'wipeStorage' : IDL.Func([], [], []),
 });
 
 export const idlInitArgs = [];
@@ -268,19 +114,6 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
-  const TaskFrequency = IDL.Variant({
-    'monthly' : IDL.Null,
-    'daily' : IDL.Null,
-    'weekly' : IDL.Null,
-  });
-  const Time = IDL.Int;
-  const OvertimeEntry = IDL.Record({
-    'date' : IDL.Text,
-    'minutes' : IDL.Nat,
-    'comment' : IDL.Text,
-    'timestamp' : Time,
-    'isAdd' : IDL.Bool,
-  });
   const UserRole = IDL.Variant({
     'manager' : IDL.Null,
     'assistant' : IDL.Null,
@@ -299,87 +132,6 @@ export const idlFactory = ({ IDL }) => {
     'initials' : IDL.Text,
     'language' : Language,
     'profilePicture' : IDL.Opt(ExternalBlob),
-  });
-  const Avatar = IDL.Record({
-    'id' : IDL.Nat,
-    'blob' : ExternalBlob,
-    'name' : IDL.Text,
-    'description' : IDL.Text,
-  });
-  const AuditLogAction = IDL.Variant({
-    'taskUpdated' : IDL.Null,
-    'taskCreated' : IDL.Null,
-    'taskMarkedDone' : IDL.Null,
-  });
-  const TaskHistoryEntry = IDL.Record({
-    'id' : IDL.Nat,
-    'action' : AuditLogAction,
-    'username' : IDL.Text,
-    'completedOnTime' : IDL.Opt(IDL.Bool),
-    'evidencePhoto' : IDL.Opt(ExternalBlob),
-    'summary' : IDL.Text,
-    'taskId' : IDL.Nat,
-    'userPrincipal' : IDL.Principal,
-    'completionComment' : IDL.Opt(IDL.Text),
-    'userProfilePicture' : IDL.Opt(ExternalBlob),
-    'timestamp' : Time,
-    'userAvatar' : IDL.Opt(Avatar),
-    'userInitials' : IDL.Text,
-  });
-  const ToDoTask = IDL.Record({
-    'id' : IDL.Nat,
-    'completedBy' : IDL.Opt(IDL.Principal),
-    'title' : IDL.Text,
-    'createdAt' : Time,
-    'createdBy' : IDL.Principal,
-    'lastCompleted' : IDL.Opt(Time),
-    'isWeekly' : IDL.Bool,
-    'description' : IDL.Text,
-    'evidencePhoto' : IDL.Opt(ExternalBlob),
-    'completionComment' : IDL.Opt(IDL.Text),
-    'completedByUsername' : IDL.Opt(IDL.Text),
-    'frequency' : TaskFrequency,
-    'completionTimestamp' : IDL.Opt(Time),
-    'isPinned' : IDL.Bool,
-  });
-  const AssistantTaskCompletionRecord = IDL.Record({
-    'completedOnTime' : IDL.Bool,
-    'taskTitle' : IDL.Text,
-    'taskId' : IDL.Nat,
-    'frequency' : TaskFrequency,
-    'completionTimestamp' : Time,
-  });
-  const TaskPreference = IDL.Variant({
-    'hated' : IDL.Null,
-    'preferred' : IDL.Null,
-    'neutral' : IDL.Null,
-  });
-  const AssistantTaskSummary = IDL.Record({
-    'dailyTasks' : IDL.Nat,
-    'totalTasks' : IDL.Nat,
-    'username' : IDL.Text,
-    'completedTasks' : IDL.Nat,
-    'taskPreferences' : IDL.Vec(IDL.Tuple(IDL.Nat, TaskPreference)),
-    'weeklyTasks' : IDL.Nat,
-    'monthlyTasks' : IDL.Nat,
-    'onTimeTasks' : IDL.Nat,
-  });
-  const AssistantTaskHabits = IDL.Record({
-    'completions' : IDL.Vec(AssistantTaskCompletionRecord),
-    'summary' : AssistantTaskSummary,
-  });
-  const AuditLogEntry = IDL.Record({
-    'action' : AuditLogAction,
-    'username' : IDL.Text,
-    'taskId' : IDL.Nat,
-    'userPrincipal' : IDL.Principal,
-    'timestamp' : Time,
-    'changeSummary' : IDL.Text,
-  });
-  const OvertimeTotals = IDL.Record({
-    'totalHours' : IDL.Nat,
-    'totalDays' : IDL.Nat,
-    'totalMinutes' : IDL.Nat,
   });
   const AssistantRegistrationPayload = IDL.Record({
     'username' : IDL.Text,
@@ -417,80 +169,20 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
-    'checkManagerNotifications' : IDL.Func([], [IDL.Bool], []),
-    'createTask' : IDL.Func(
-        [IDL.Text, IDL.Text, TaskFrequency, IDL.Bool],
-        [IDL.Nat],
-        [],
-      ),
-    'deleteAssistantData' : IDL.Func([IDL.Principal], [], []),
-    'editLatestOvertimeEntry' : IDL.Func([IDL.Text, OvertimeEntry], [], []),
-    'getAllAssistants' : IDL.Func([], [IDL.Vec(UserProfile)], ['query']),
-    'getAllAvatars' : IDL.Func([], [IDL.Vec(Avatar)], ['query']),
-    'getAllTaskHistory' : IDL.Func([], [IDL.Vec(TaskHistoryEntry)], ['query']),
-    'getAllTaskHistoryEntries' : IDL.Func(
-        [],
-        [IDL.Vec(TaskHistoryEntry)],
-        ['query'],
-      ),
-    'getAllTasks' : IDL.Func([], [IDL.Vec(ToDoTask)], ['query']),
-    'getAssistantTaskHabits' : IDL.Func(
-        [IDL.Text],
-        [AssistantTaskHabits],
-        ['query'],
-      ),
-    'getAuditLog' : IDL.Func([], [IDL.Vec(AuditLogEntry)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
-    'getOvertimeEntries' : IDL.Func(
-        [IDL.Text],
-        [IDL.Vec(OvertimeEntry)],
-        ['query'],
-      ),
-    'getOvertimeTotals' : IDL.Func([IDL.Text], [OvertimeTotals], ['query']),
-    'getTask' : IDL.Func([IDL.Nat], [IDL.Opt(ToDoTask)], ['query']),
-    'getTaskHistory' : IDL.Func(
-        [IDL.Nat],
-        [IDL.Vec(TaskHistoryEntry)],
-        ['query'],
-      ),
-    'getTaskPreferences' : IDL.Func(
-        [IDL.Text],
-        [IDL.Vec(IDL.Tuple(IDL.Nat, TaskPreference))],
-        ['query'],
-      ),
-    'getUnlockedAvatarIds' : IDL.Func([], [IDL.Vec(IDL.Nat)], ['query']),
-    'getUnlockedAvatars' : IDL.Func([], [IDL.Vec(Avatar)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'logOvertime' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text, IDL.Bool], [], []),
-    'markTaskDone' : IDL.Func(
-        [IDL.Nat, IDL.Opt(ExternalBlob), IDL.Opt(IDL.Text)],
-        [],
-        [],
-      ),
     'registerAssistant' : IDL.Func(
         [AssistantRegistrationPayload],
         [IDL.Bool],
         [],
       ),
-    'resetUsersAndClearOrphanedState' : IDL.Func([IDL.Bool], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-    'setPresetAvatar' : IDL.Func([IDL.Nat], [Avatar], []),
-    'setTaskPinnedStatus' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
-    'setTaskPreference' : IDL.Func([IDL.Text, IDL.Nat, TaskPreference], [], []),
-    'updateTask' : IDL.Func(
-        [IDL.Nat, IDL.Text, IDL.Text, TaskFrequency, IDL.Bool],
-        [],
-        [],
-      ),
-    'uploadAvatar' : IDL.Func([IDL.Text, IDL.Text, ExternalBlob], [Avatar], []),
-    'uploadProfilePicture' : IDL.Func([ExternalBlob], [ExternalBlob], []),
-    'wipeStorage' : IDL.Func([], [], []),
   });
 };
 

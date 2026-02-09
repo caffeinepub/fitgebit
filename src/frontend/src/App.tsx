@@ -1,21 +1,45 @@
-import { useEffect } from 'react';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { useGetCallerUserProfile, useGetUnlockedAvatars } from './hooks/useQueries';
+import { useGetCallerUserProfile } from './hooks/useQueries';
+import { useQueryClient } from '@tanstack/react-query';
 import LoginPage from './pages/LoginPage';
 import ProfileSetupPage from './pages/ProfileSetupPage';
-import AssistantDashboard from './pages/AssistantDashboard';
-import ManagerDashboard from './pages/ManagerDashboard';
-import { UserRole } from './backend';
+import SimpleDashboard from './pages/SimpleDashboard';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import AuthBootstrapErrorScreen from './components/AuthBootstrapErrorScreen';
 
 function AppContent() {
-  const { identity, isInitializing } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-
-  // Trigger early fetch of unlocked avatars to enable monthly unlock reveal
-  useGetUnlockedAvatars();
+  const { identity, isInitializing, clear } = useInternetIdentity();
+  const queryClient = useQueryClient();
+  const { 
+    data: userProfile, 
+    isLoading: profileLoading, 
+    isFetched,
+    isError,
+    error,
+    refetch
+  } = useGetCallerUserProfile();
 
   const isAuthenticated = !!identity;
+
+  // Handle authenticated profile fetch error
+  if (isAuthenticated && isError && isFetched) {
+    const handleRetry = async () => {
+      await refetch();
+    };
+
+    const handleSignOut = async () => {
+      await clear();
+      queryClient.clear();
+    };
+
+    return (
+      <AuthBootstrapErrorScreen 
+        error={error}
+        onRetry={handleRetry}
+        onSignOut={handleSignOut}
+      />
+    );
+  }
 
   // Derive showProfileSetup directly from auth + profile state (no local state)
   const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
@@ -51,24 +75,7 @@ function AppContent() {
     );
   }
 
-  // Defensive role check: only render manager dashboard for managers
-  if (userProfile.role === UserRole.manager) {
-    return <ManagerDashboard userProfile={userProfile} />;
-  }
-
-  // Defensive role check: only render assistant dashboard for assistants
-  if (userProfile.role === UserRole.assistant) {
-    return <AssistantDashboard userProfile={userProfile} />;
-  }
-
-  // Fallback for unknown roles
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <p className="text-sm text-destructive">Unknown user role. Please contact support.</p>
-      </div>
-    </div>
-  );
+  return <SimpleDashboard userProfile={userProfile} />;
 }
 
 export default function App() {

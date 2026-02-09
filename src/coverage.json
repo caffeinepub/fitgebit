@@ -1,48 +1,55 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T23:54:36.273Z",
+  "generatedAt": "2026-02-09T08:23:38.673Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 4,
     "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the profile registration flow so a newly authenticated Internet Identity user can successfully create a user profile from the Profile Setup page and then proceed into the app (assistant or manager dashboard as applicable).",
+        "summary": "Update the authenticated app bootstrap flow so that failures to fetch the caller profile (e.g., authorization/access-control not initialized) do not result in a stuck loading state, and instead show a clear error state with a retry option and a way to re-authenticate.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/ProfileSetupPage.tsx",
+          "frontend/src/components/AuthBootstrapErrorScreen.tsx",
+          "frontend/src/utils/userFacingError.ts",
           "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/ProfileSetupPage.tsx",
+          "frontend/src/components/AuthBootstrapErrorScreen.tsx",
+          "frontend/src/utils/userFacingError.ts",
           "frontend/src/App.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Ensure the backend `registerAssistant` call properly authorizes first-time users and initializes all required state so that subsequent authenticated calls function normally.",
+        "summary": "Fix backend registration authorization so a first-time Internet Identity user can successfully create a profile via `registerAssistant` and subsequently be authorized for authenticated app calls.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Update the frontend registration success handling so that the app immediately reflects the newly created profile (no manual refresh required).",
+        "summary": "Adjust backend caller-profile fetching so the frontend can reliably determine whether a logged-in user has a profile: `getCallerUserProfile` must not trap for first-time authenticated users and should return `null` when no profile exists.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Ensure the profile creation UI provides explicit, user-visible feedback when profile creation fails (including backend trap messages), rather than appearing to do nothing.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/App.tsx"
+          "frontend/src/pages/ProfileSetupPage.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/App.tsx"
+          "frontend/src/pages/ProfileSetupPage.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
       }
     ]
@@ -57,10 +64,46 @@
     "frontend/src/App.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
+    "frontend/src/components/AssistantDetailView.tsx",
+    "frontend/src/components/AssistantList.tsx",
+    "frontend/src/components/AuthBootstrapErrorScreen.tsx",
+    "frontend/src/components/DangerZone.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/ManagerAnalytics.tsx",
+    "frontend/src/components/OvertimeChart.tsx",
+    "frontend/src/components/OvertimeForm.tsx",
+    "frontend/src/components/OvertimeHistory.tsx",
+    "frontend/src/components/OvertimeSummary.tsx",
+    "frontend/src/components/ProfileDialog.tsx",
+    "frontend/src/components/profile/AvatarModal.tsx",
+    "frontend/src/components/profile/ProfileAvatar.tsx",
+    "frontend/src/components/todo/AuditLogView.tsx",
+    "frontend/src/components/todo/EvidenceImagePreviewDialog.tsx",
+    "frontend/src/components/todo/MarkTaskDoneDialog.tsx",
+    "frontend/src/components/todo/TaskCompletionAttribution.tsx",
+    "frontend/src/components/todo/TaskCompletionPhotoInput.tsx",
+    "frontend/src/components/todo/TaskLedgerDialog.tsx",
+    "frontend/src/components/todo/TaskPreferencesManager.tsx",
+    "frontend/src/components/todo/ToDoSection.tsx",
+    "frontend/src/components/todo/ToDoTable.tsx",
+    "frontend/src/components/todo/ToDoTaskDialog.tsx",
+    "frontend/src/constants/dentalPresets.ts",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AssistantDashboard.tsx",
+    "frontend/src/pages/LoginPage.tsx",
+    "frontend/src/pages/ManagerDashboard.tsx",
     "frontend/src/pages/ProfileSetupPage.tsx",
+    "frontend/src/pages/SimpleDashboard.tsx",
+    "frontend/src/utils/externalBlobUrl.ts",
+    "frontend/src/utils/overtimeDates.ts",
+    "frontend/src/utils/overtimeStyles.ts",
+    "frontend/src/utils/photoValidation.ts",
+    "frontend/src/utils/presetTileColors.ts",
+    "frontend/src/utils/taskHabits.ts",
+    "frontend/src/utils/todoDates.ts",
+    "frontend/src/utils/userFacingError.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

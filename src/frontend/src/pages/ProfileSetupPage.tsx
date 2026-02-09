@@ -5,16 +5,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, User, Info } from 'lucide-react';
+import { Loader2, User, Info, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Language } from '../backend';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getUserFacingErrorMessage } from '../utils/userFacingError';
 
 export default function ProfileSetupPage() {
   const [username, setUsername] = useState('');
   const [initials, setInitials] = useState('');
   const [overtime, setOvertime] = useState('');
   const [language, setLanguage] = useState<Language>('english' as Language);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const registerMutation = useRegisterAssistant();
 
   const handleOvertimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,23 +30,26 @@ export default function ProfileSetupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Clear previous error
+    setErrorMessage(null);
+
     if (!username.trim()) {
-      toast.error('Please enter a username');
+      setErrorMessage('Please enter a username');
       return;
     }
 
     if (username.trim().length < 3) {
-      toast.error('Username must be at least 3 characters');
+      setErrorMessage('Username must be at least 3 characters');
       return;
     }
 
     if (!initials.trim()) {
-      toast.error('Please enter your initials');
+      setErrorMessage('Please enter your initials');
       return;
     }
 
     if (initials.trim().length > 4) {
-      toast.error('Initials must be 4 characters or less');
+      setErrorMessage('Initials must be 4 characters or less');
       return;
     }
 
@@ -55,27 +60,13 @@ export default function ProfileSetupPage() {
         initials: initials.trim().toUpperCase(),
         overtime: overtime.trim()
       });
-      // Success toast will show after profile loads
+      // Success - the mutation will trigger profile refetch and App will transition
       toast.success('Profile created successfully! Loading your dashboard...');
     } catch (error: any) {
-      // Extract user-friendly error message from backend trap
-      let errorMessage = 'Failed to create profile';
-      
-      if (error.message) {
-        if (error.message.includes('already registered')) {
-          errorMessage = 'You already have a profile';
-        } else if (error.message.includes('Username already taken')) {
-          errorMessage = 'This username is already taken';
-        } else if (error.message.includes('Username') && error.message.includes('reserved')) {
-          errorMessage = 'This username is reserved';
-        } else if (error.message.includes('Unauthorized')) {
-          errorMessage = 'Authorization error. Please try logging in again.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      toast.error(errorMessage);
+      // Extract user-friendly error message
+      const friendlyMessage = getUserFacingErrorMessage(error);
+      setErrorMessage(friendlyMessage);
+      toast.error(friendlyMessage);
     }
   };
 
@@ -109,6 +100,14 @@ export default function ProfileSetupPage() {
                 <strong>Note:</strong> Access to the manager dashboard is granted based on your registration details.
               </AlertDescription>
             </Alert>
+
+            {errorMessage && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">

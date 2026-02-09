@@ -4,23 +4,23 @@
   "summary": "New project",
   "architectural_notes": [],
   "known_issues": [
-    "User cannot create a new account: can enter name initials and overtime but cannot proceed past that step."
+    "Profile/account creation appears to do nothing; user cannot log in/access the app."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-fix-the-profile-registration-flow-so-a-newly-authenticated-internet-identity-user-can-successfully-create-a-user-profile-from-the-profile-setup-page-and-then-proceed-into-the-app-assistant-or-manager-dashboard-as-applicable",
-      "title": "Fix the profile registration flow so a newly authenticated Internet Identity user can successfully create a user profile from the Profile Setup page and then proceed into the app (assistant or manager dashboard as applicable).",
+      "id": "feature-update-the-authenticated-app-bootstrap-flow-so-that-failures-to-fetch-the-caller-profile-e-g-authorization-access-control-not-initialized-do-not-result-in-a-stuck-loading-state-and-instead-show-a-clear-error-state-with-a-retry-option-and-a-way-to-re-authenticate",
+      "title": "Update the authenticated app bootstrap flow so that failures to fetch the caller profile (e.g., authorization/access-control not initialized) do not result in a stuck loading state, and instead show a clear error state with a retry option and a way to re-authenticate.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-frontend-registration-success-handling-so-that-the-app-immediately-reflects-the-newly-created-profile-no-manual-refresh-required",
-      "title": "Update the frontend registration success handling so that the app immediately reflects the newly created profile (no manual refresh required).",
+      "id": "feature-ensure-the-profile-creation-ui-provides-explicit-user-visible-feedback-when-profile-creation-fails-including-backend-trap-messages-rather-than-appearing-to-do-nothing",
+      "title": "Ensure the profile creation UI provides explicit, user-visible feedback when profile creation fails (including backend trap messages), rather than appearing to do nothing.",
       "reqIds": [
-        "REQ-3"
+        "REQ-4"
       ],
       "version": 1
     }
@@ -28,14 +28,22 @@
   "new_feature_requests": [
     {
       "id": "AR-2",
-      "summary": "Ensure the backend `registerAssistant` call properly authorizes first-time users and initializes all required state so that subsequent authenticated calls function normally.",
+      "summary": "Fix backend registration authorization so a first-time Internet Identity user can successfully create a profile via `registerAssistant` and subsequently be authorized for authenticated app calls.",
       "reqIds": [
         "REQ-2"
       ],
       "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Adjust backend caller-profile fetching so the frontend can reliably determine whether a logged-in user has a profile: `getCallerUserProfile` must not trap for first-time authenticated users and should return `null` when no profile exists.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
     }
   ],
-  "projectName": "Fix profile setup so new users can create an account and reach the dashboard",
+  "projectName": "Fix profile creation so new users can register and access the app",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

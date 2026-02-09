@@ -1,71 +1,92 @@
 {
   "kind": "build_request",
-  "title": "Fix profile setup so new users can create an account and reach the dashboard",
+  "title": "Fix profile creation so new users can register and access the app",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the profile registration flow so a newly authenticated Internet Identity user can successfully create a user profile from the Profile Setup page and then proceed into the app (assistant or manager dashboard as applicable).",
-      "target": "both",
+      "text": "Update the authenticated app bootstrap flow so that failures to fetch the caller profile (e.g., authorization/access-control not initialized) do not result in a stuck loading state, and instead show a clear error state with a retry option and a way to re-authenticate.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages-6"
         ],
         "quotes": [
-          "Can't create new account. I can fill in the name initials and overtime but can't proceed"
+          "Nothing happens when I create a profile. I can't get in."
         ]
       },
       "acceptanceCriteria": [
-        "After logging in with Internet Identity and completing Profile Setup (username, initials, optional overtime, language), clicking “Create Profile” results in the user being routed into the app (not stuck on the Profile Setup page).",
-        "If profile creation fails, the UI shows a clear error (toast is acceptable) and the “Create Profile” button becomes clickable again (no permanent pending/disabled state).",
-        "The backend registration endpoint used by the frontend (`registerAssistant`) succeeds for a first-time user (no existing `UserProfile`) and persists the created profile so that subsequent calls to `getCallerUserProfile` return a non-null profile for that caller."
+        "When a user is authenticated but `useGetCallerUserProfile()` fails, the UI does not loop indefinitely on \"Loading\" / \"Loading profile...\".",
+        "A visible error message is shown in English explaining that the profile could not be loaded, with at least: a \"Retry\" action (refetch) and a \"Sign out\" (or equivalent) action to re-authenticate.",
+        "After clicking \"Retry\", the app attempts to refetch the caller profile and proceeds normally if it succeeds.",
+        "No changes are made to immutable hook files under `frontend/src/hooks/useInternetIdentity.ts(x)` or `frontend/src/hooks/useActor.ts`."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure the backend `registerAssistant` call properly authorizes first-time users and initializes all required state so that subsequent authenticated calls function normally.",
+      "text": "Fix backend registration authorization so a first-time Internet Identity user can successfully create a profile via `registerAssistant` and subsequently be authorized for authenticated app calls.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages-6"
         ],
         "quotes": [
-          "Can't create new account. I can fill in the name initials and overtime but can't proceed"
+          "Nothing happens when I create a profile. I can't get in."
         ]
       },
       "acceptanceCriteria": [
-        "A first-time authenticated caller can call `registerAssistant` without hitting an authorization trap meant for already-registered users.",
-        "On successful registration, the caller is granted whatever permission/role is required so that normal app functions that check authorization (e.g., task/overtime APIs) do not immediately trap for the newly registered user.",
-        "Registration rejects invalid inputs with explicit errors (e.g., empty username, username too short, initials too long) rather than failing silently."
+        "Calling `registerAssistant` as a newly authenticated principal succeeds without requiring prior `#user` permission (no Unauthorized trap).",
+        "After successful registration, subsequent authenticated calls that require `#user` permission succeed for that same principal (i.e., backend grants/initializes required access control state for the caller).",
+        "If the caller is anonymous (not authenticated), `registerAssistant` fails with a clear trap message in English indicating authorization is required.",
+        "Registration still enforces uniqueness rules (e.g., username not already taken) and returns a clear error message on failure."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update the frontend registration success handling so that the app immediately reflects the newly created profile (no manual refresh required).",
-      "target": "frontend",
+      "text": "Adjust backend caller-profile fetching so the frontend can reliably determine whether a logged-in user has a profile: `getCallerUserProfile` must not trap for first-time authenticated users and should return `null` when no profile exists.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages-6"
         ],
         "quotes": [
-          "Can't create new account. I can fill in the name initials and overtime but can't proceed"
+          "Nothing happens when I create a profile. I can't get in."
         ]
       },
       "acceptanceCriteria": [
-        "After `useRegisterAssistant()` succeeds, the frontend triggers a reliable refresh of the current profile (e.g., refetch or cache update) so `App.tsx` stops rendering `ProfileSetupPage` and renders the correct dashboard.",
-        "The user sees a consistent loading state during the transition (no blank screen) and ends up on the dashboard within a short time after success."
+        "For an authenticated principal with no stored `UserProfile`, `getCallerUserProfile` returns `null` (does not trap).",
+        "For an authenticated principal with a stored `UserProfile`, `getCallerUserProfile` returns that profile.",
+        "For an anonymous caller, `getCallerUserProfile` fails in a controlled way (either returns `null` consistently or traps with an English \"Unauthorized\" message), and the frontend handles it without getting stuck."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Ensure the profile creation UI provides explicit, user-visible feedback when profile creation fails (including backend trap messages), rather than appearing to do nothing.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages-6"
+        ],
+        "quotes": [
+          "Nothing happens when I create a profile. I can't get in."
+        ]
+      },
+      "acceptanceCriteria": [
+        "If `registerAssistant` fails, the Profile Setup page shows an explicit error state/message in English (not only a silent failure).",
+        "The submit button returns to an enabled state after a failed attempt, allowing the user to try again.",
+        "On successful profile creation, the app proceeds into the correct dashboard without requiring a manual refresh."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under `frontend/src/components/ui` (read-only UI components must be composed, not edited).",
-    "Do not edit immutable hook files: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`.",
-    "Backend must remain a single Motoko actor in `backend/main.mo`; only add `backend/migration.mo` if an existing persisted state schema must change."
+    "Backend must remain a single Motoko actor with all logic in `backend/main.mo`.",
+    "Do not edit files listed as immutable in SYSTEM_CONTEXT, including `frontend/src/hooks/useActor.ts` and `frontend/src/hooks/useInternetIdentity.ts(x)`.",
+    "Use English for all user-facing text."
   ],
   "nonGoals": [
     "Adding new authentication providers (only Internet Identity).",
-    "Introducing external databases or services.",
-    "Adding new product features unrelated to fixing account creation (e.g., new dashboards, new task types)."
+    "Introducing external databases or additional backend services.",
+    "Implementing new product features unrelated to registration/login (e.g., new task/overtime functionality)."
   ],
   "imageRequirements": {
     "required": [],
@@ -74,9 +95,7 @@
   "userProfileUpdate": {
     "goalsToAdd": [],
     "goalsToRemove": [],
-    "preferencesToAdd": [
-      "Use English for any user-facing text."
-    ],
+    "preferencesToAdd": [],
     "preferencesToRemove": [],
     "miscToAdd": [],
     "miscToRemove": [],

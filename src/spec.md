@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the profile setup/registration flow so first-time Internet Identity users can create a profile and be routed into the correct dashboard.
+**Goal:** Fix registration/profile bootstrap so first-time authenticated users can create a profile and enter the app without getting stuck on loading.
 
 **Planned changes:**
-- Backend: adjust `registerAssistant` so first-time authenticated callers can register successfully, required state/permissions are initialized, and invalid inputs return explicit errors.
-- Backend: ensure a successfully created profile is persisted so `getCallerUserProfile` returns a non-null profile for that caller afterward.
-- Frontend: fix Profile Setup submit handling so “Create Profile” routes into the app on success, shows a clear error on failure, and re-enables the button after an error.
-- Frontend: after `useRegisterAssistant()` succeeds, refresh/refetch the current profile (or update cache) so the app stops rendering Profile Setup and renders the correct dashboard with a consistent loading transition.
+- Update the authenticated app bootstrap flow to handle `useGetCallerUserProfile()` failures by showing a clear error state with actions to retry fetching the profile and to sign out/re-authenticate (instead of an infinite loading loop).
+- Adjust backend authorization so `registerAssistant` succeeds for newly authenticated Internet Identity users (no prior `#user` permission required), initializes/grants the needed access control for that principal, and still rejects anonymous callers with a clear English authorization error.
+- Change `getCallerUserProfile` behavior so it returns `null` (no trap) for authenticated users who do not yet have a profile, and behaves in a controlled way for anonymous callers so the frontend can handle it without getting stuck.
+- Update the profile creation UI to display explicit English error feedback (including backend trap messages) when profile creation fails, re-enable the submit button after failures, and navigate into the dashboard immediately after successful creation (no manual refresh).
 
-**User-visible outcome:** A new user can log in with Internet Identity, complete Profile Setup, click “Create Profile,” and reliably reach the assistant/manager dashboard without getting stuck; if registration fails, they see a clear error and can try again.
+**User-visible outcome:** New users can register/create a profile and access the dashboard; if profile loading or creation fails, they see a clear error message with a retry option and a way to sign out and try again.

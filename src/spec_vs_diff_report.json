@@ -1,61 +1,49 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T23:54:36.271Z",
-  "summary": "Frontend changes appear to improve the Profile Setup UX and App-level loading/conditional rendering, but the diff summary does not provide evidence that the backend `registerAssistant` authorization/state initialization requirements were implemented. The diff also includes multiple unrelated UI/dashboard/theme additions beyond the requested registration-flow fix, plus an added migration file without demonstrated need.",
+  "generatedAt": "2026-02-09T08:23:38.670Z",
+  "summary": "Frontend bootstrap error handling appears to be implemented (error screen with Retry + Sign Out and non-stuck loading). Backend registration/profile-fetch fixes are not clearly evidenced in the provided (truncated) backend diff, and profile-creation failure feedback changes on the Profile Setup page are not shown.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Backend registration endpoint (`registerAssistant`) succeeds for a first-time user and persists the created profile so subsequent `getCallerUserProfile` returns non-null for that caller.",
-      "reason": "The provided `backend/main.mo` diff is truncated and does not show any changes to `registerAssistant` or persistence logic. No other backend evidence demonstrates first-time registration works and persists state.",
+      "id": "REQ-2",
+      "requirement": "Fix backend registration authorization so a first-time Internet Identity user can successfully create a profile via `registerAssistant` and subsequently be authorized for authenticated app calls.",
+      "reason": "The diff snippet for `backend/main.mo` is truncated and does not show any changes to `registerAssistant`, authorization checks, anonymous handling, or post-registration permission initialization.",
       "evidence": [
-        "backend/main.mo (truncated; no visible `registerAssistant` implementation/details)"
+        "backend/main.mo (truncated; no visible `registerAssistant`/access-control changes)"
       ]
     },
     {
-      "id": "REQ-2",
-      "requirement": "Ensure `registerAssistant` properly authorizes first-time users, initializes required state/role/permissions for subsequent calls, and rejects invalid inputs with explicit errors.",
-      "reason": "No concrete backend implementation details are shown for authorization/role granting or explicit input validation behavior in `registerAssistant`; the backend diff is truncated before relevant functions.",
+      "id": "REQ-3",
+      "requirement": "Adjust backend caller-profile fetching so `getCallerUserProfile` must not trap for first-time authenticated users and should return `null` when no profile exists.",
+      "reason": "The provided `backend/main.mo` diff excerpt does not include `getCallerUserProfile`, so there is no evidence it was modified to return `null` instead of trapping for first-time authenticated users.",
       "evidence": [
-        "backend/main.mo (truncated; no visible authorization/role initialization or validation in `registerAssistant`)"
+        "backend/main.mo (truncated; no visible `getCallerUserProfile` changes)"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Ensure the profile creation UI provides explicit, user-visible feedback when profile creation fails (including backend trap messages), and that the submit button re-enables after failure.",
+      "reason": "No diff content is shown for `frontend/src/pages/ProfileSetupPage` (or equivalent registration submission UI), so there is no evidence of explicit error messaging, handling of trap messages, or submit re-enable logic.",
+      "evidence": [
+        "frontend/src/pages/ProfileSetupPage (not shown in diff summary)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added a backend migration module (`backend/migration.mo`) despite the request stating it should only be added if a persisted state schema must change; the diff summary does not show any schema-change justification or actual migration content.",
-      "reason": "Not requested by requirements; addition is conditional on schema change, which is not evidenced in the diff summary, and the migration file is essentially a placeholder.",
+      "description": "Added a new `SimpleDashboard` page that displays the created profile and a logout action.",
+      "reason": "The BuildRequest focuses on fixing registration/profile bootstrap and error handling; introducing a new dashboard page is not explicitly requested and may be beyond the specified scope (depending on whether it replaces an existing dashboard).",
+      "evidence": [
+        "frontend/src/pages/SimpleDashboard.tsx",
+        "frontend/src/App.tsx (routes to `SimpleDashboard`)"
+      ]
+    },
+    {
+      "description": "Introduced migration scaffolding (`backend/migration.mo`) and wired it into the backend actor via `(with migration = Migration.run)`.",
+      "reason": "No requirement mentions adding migrations; this is an additional backend structural change not explicitly requested in the BuildRequest.",
       "evidence": [
         "backend/migration.mo",
         "backend/main.mo (imports `Migration \"migration\"` and uses `(with migration = Migration.run)`)"
-      ]
-    },
-    {
-      "description": "Manager dashboard updated with a new Settings tab containing a DangerZone component for system-wide dangerous operations.",
-      "reason": "Non-goal: no new product features unrelated to account creation; this is unrelated to fixing registration flow.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/pages/ManagerDashboard.tsx description)"
-      ]
-    },
-    {
-      "description": "Significant UI/theme and styling changes (OKLCH color system and palette replacement).",
-      "reason": "Not requested; unrelated to fixing account creation flow.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/index.css description)"
-      ]
-    },
-    {
-      "description": "Added/expanded overtime and analytics features (charts, sticky summaries, paginated history with inline editing, assistant detail analytics, CSV export, task habits section adjustments).",
-      "reason": "Non-goal: avoid new product features unrelated to fixing account creation; these changes go well beyond registration flow fixes.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/OvertimeChart.tsx, OvertimeSummary.tsx, OvertimeHistory.tsx, AssistantDetailView.tsx, ManagerAnalytics.tsx descriptions)"
-      ]
-    },
-    {
-      "description": "Header redesign/behavior changes (theme toggle, avatar modal, branding changes).",
-      "reason": "Not requested; unrelated to fixing new-user profile creation and dashboard routing.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/Header.tsx description)"
       ]
     }
   ],
@@ -65,8 +53,44 @@
     "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/App.tsx",
+    "frontend/src/components/AssistantDetailView.tsx",
+    "frontend/src/components/AssistantList.tsx",
+    "frontend/src/components/AuthBootstrapErrorScreen.tsx",
+    "frontend/src/components/DangerZone.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/ManagerAnalytics.tsx",
+    "frontend/src/components/OvertimeChart.tsx",
+    "frontend/src/components/OvertimeForm.tsx",
+    "frontend/src/components/OvertimeHistory.tsx",
+    "frontend/src/components/OvertimeSummary.tsx",
+    "frontend/src/components/ProfileDialog.tsx",
+    "frontend/src/components/profile/AvatarModal.tsx",
+    "frontend/src/components/profile/ProfileAvatar.tsx",
+    "frontend/src/components/todo/AuditLogView.tsx",
+    "frontend/src/components/todo/EvidenceImagePreviewDialog.tsx",
+    "frontend/src/components/todo/MarkTaskDoneDialog.tsx",
+    "frontend/src/components/todo/TaskCompletionAttribution.tsx",
+    "frontend/src/components/todo/TaskCompletionPhotoInput.tsx",
+    "frontend/src/components/todo/TaskLedgerDialog.tsx",
+    "frontend/src/components/todo/TaskPreferencesManager.tsx",
+    "frontend/src/components/todo/ToDoSection.tsx",
+    "frontend/src/components/todo/ToDoTable.tsx",
+    "frontend/src/components/todo/ToDoTaskDialog.tsx",
+    "frontend/src/constants/dentalPresets.ts",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AssistantDashboard.tsx",
+    "frontend/src/pages/LoginPage.tsx",
+    "frontend/src/pages/ManagerDashboard.tsx",
     "frontend/src/pages/ProfileSetupPage.tsx",
+    "frontend/src/pages/SimpleDashboard.tsx",
+    "frontend/src/utils/externalBlobUrl.ts",
+    "frontend/src/utils/overtimeDates.ts",
+    "frontend/src/utils/overtimeStyles.ts",
+    "frontend/src/utils/photoValidation.ts",
+    "frontend/src/utils/presetTileColors.ts",
+    "frontend/src/utils/taskHabits.ts",
+    "frontend/src/utils/todoDates.ts",
+    "frontend/src/utils/userFacingError.ts",
     "project_state.json"
   ]
 }
