@@ -100,6 +100,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'registerManager' : IDL.Func([ManagerRegistrationPayload], [IDL.Bool], []),
+  'resetState' : IDL.Func([], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'validateManagerToken' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
 });
@@ -199,6 +200,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'registerManager' : IDL.Func([ManagerRegistrationPayload], [IDL.Bool], []),
+    'resetState' : IDL.Func([], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'validateManagerToken' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   });

@@ -151,6 +151,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     registerAssistant(payload: AssistantRegistrationPayload): Promise<boolean>;
     registerManager(payload: ManagerRegistrationPayload): Promise<boolean>;
+    resetState(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     validateManagerToken(token: string): Promise<boolean>;
 }
@@ -364,6 +365,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.registerManager(to_candid_ManagerRegistrationPayload_n25(this._uploadFile, this._downloadFile, arg0));
+            return result;
+        }
+    }
+    async resetState(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.resetState();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.resetState();
             return result;
         }
     }

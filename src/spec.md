@@ -1,14 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the Login page so clicking “Sign in” never appears to do nothing by clearly reflecting Internet Identity initialization, sign-in progress, and any login errors.
+**Goal:** Add an admin-only “full system reset” that scrubs all users and user-related data so the app can restart with fresh logins and avoid post-reset login hangs.
 
 **Planned changes:**
-- Update the Login page to immediately show visible feedback on Sign in (disabled/spinner and “Signing in…” state) when login is triggered.
-- Disable the Sign in button while Internet Identity is initializing (`loginStatus === 'initializing'`) and show clear English text indicating authentication is still initializing.
-- Surface Internet Identity context errors on the Login page using the existing Alert component, including:
-  - AuthClient-not-initialized cases (e.g., `loginError` set by the hook while initializing)
-  - Provider-reported login errors (`loginStatus === 'loginError'` and/or `loginError` set), mapped through the existing `getUserFacingErrorMessage()` helper.
-- Ensure the Login page relies on Internet Identity context state for failure handling (not `try/catch` around `await login()`).
+- Add a backend admin-only reset method (e.g., `resetAllState`) that clears all user profiles and all user-tied state (tasks, audit logs, overtime, notifications, task history, avatars, preferences, authorization/roles, and ID counters), resets manager-registration state, and is idempotent.
+- Enforce access control on the reset method (non-admin callers receive an Unauthorized error).
+- Add a frontend “Full System Reset” entry point available even from login/auth bootstrap error surfaces, with typed confirmation, and clear success/error feedback in English.
+- On successful reset, clear client session state (sessionStorage keys), clear the React Query cache, and return to a clean login state.
+- Adjust/verify auth bootstrap so that post-reset sign-in routes to Profile Setup when no user profile exists, and the app does not get stuck on an indefinite global loading screen (retaining retry/sign-out/reset actions on bootstrap timeout).
 
-**User-visible outcome:** Users clicking “Sign in” will always see immediate status feedback (Initializing/Signing in) or a clear, actionable error message instead of a silent no-op.
+**User-visible outcome:** An admin can securely trigger a full system wipe from the UI (even if stuck at login), receive clear success/error feedback, and after reset users can sign in normally and be routed to Profile Setup instead of an endless loading screen.

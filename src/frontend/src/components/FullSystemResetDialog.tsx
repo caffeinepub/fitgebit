@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useFlushUserAccount } from '../hooks/useQueries';
+import { useFullSystemReset } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -17,28 +17,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, AlertCircle, Loader2 } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Loader2 } from 'lucide-react';
 import { getUserFacingErrorMessage } from '../utils/userFacingError';
 import { clearAllSessionState } from '../utils/sessionStateReset';
 
-interface AccountResetDialogProps {
+interface FullSystemResetDialogProps {
   triggerVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   triggerClassName?: string;
 }
 
-export default function AccountResetDialog({ 
+export default function FullSystemResetDialog({ 
   triggerVariant = 'destructive',
   triggerClassName = ''
-}: AccountResetDialogProps) {
+}: FullSystemResetDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const flushMutation = useFlushUserAccount();
+  const resetMutation = useFullSystemReset();
   const { clear } = useInternetIdentity();
   const queryClient = useQueryClient();
 
-  const isConfirmValid = confirmText === 'RESET MY ACCOUNT';
-  const isResetting = flushMutation.isPending;
+  const isConfirmValid = confirmText === 'FULL SYSTEM RESET';
+  const isResetting = resetMutation.isPending;
 
   const handleReset = async () => {
     if (!isConfirmValid) return;
@@ -46,8 +46,8 @@ export default function AccountResetDialog({
     setError(null);
 
     try {
-      // Call backend to flush the account
-      await flushMutation.mutateAsync();
+      // Call backend to reset all state
+      await resetMutation.mutateAsync();
 
       // Clear all session state (role, tokens, validation flags)
       clearAllSessionState();
@@ -82,25 +82,28 @@ export default function AccountResetDialog({
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>
         <Button variant={triggerVariant} className={triggerClassName}>
-          <Trash2 className="mr-2 h-4 w-4" />
-          Reset Account
+          <AlertTriangle className="mr-2 h-4 w-4" />
+          Full System Reset
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-            <AlertCircle className="h-5 w-5" />
-            Reset Your Account
+            <AlertTriangle className="h-5 w-5" />
+            Full System Reset
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-3 pt-2">
             <p className="font-semibold text-foreground">
-              This action will permanently delete your account and all associated data.
+              This action will permanently delete ALL user accounts and ALL system data.
             </p>
             <p>
-              This includes your profile, preferences, and all history. This action cannot be undone.
+              This includes all profiles, tasks, overtime records, audit logs, preferences, and history for every user in the system.
             </p>
             <p>
-              After resetting, you will be signed out and can create a new account with a fresh start.
+              After the reset, the system will return to its initial state as if it were freshly deployed. All users will need to register again.
+            </p>
+            <p className="text-destructive font-semibold">
+              This action cannot be undone. Only administrators can perform this operation.
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -114,14 +117,14 @@ export default function AccountResetDialog({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="confirm-reset">
-              Type <span className="font-mono font-bold">RESET MY ACCOUNT</span> to confirm
+            <Label htmlFor="confirm-full-reset">
+              Type <span className="font-mono font-bold">FULL SYSTEM RESET</span> to confirm
             </Label>
             <Input
-              id="confirm-reset"
+              id="confirm-full-reset"
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              placeholder="RESET MY ACCOUNT"
+              placeholder="FULL SYSTEM RESET"
               disabled={isResetting}
               className="font-mono"
             />
@@ -141,12 +144,12 @@ export default function AccountResetDialog({
             {isResetting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Resetting...
+                Resetting System...
               </>
             ) : (
               <>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Reset Account
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Reset Entire System
               </>
             )}
           </AlertDialogAction>

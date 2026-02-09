@@ -5,7 +5,6 @@ import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Int "mo:core/Int";
-import Nat "mo:core/Nat";
 import Time "mo:core/Time";
 import Order "mo:core/Order";
 
@@ -13,9 +12,9 @@ import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
+import Migration "migration";
 
-// Specify the data migration function in with-clause
-
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -263,7 +262,7 @@ actor {
     };
   };
 
-  let accessControlState = AccessControl.initState();
+  var accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
   public shared ({ caller }) func registerAssistant(payload : AssistantRegistrationPayload) : async Bool {
@@ -392,11 +391,37 @@ actor {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Anonymous users cannot validate tokens");
     };
-    
+
     if (Text.equal(token, managerRegistrationToken)) {
       true;
     } else {
       false;
     };
+  };
+
+  public shared ({ caller }) func resetState() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can perform this action");
+    };
+
+    userProfiles.clear();
+    taskState.clear();
+    auditLog.clear();
+    overtimeState.clear();
+    notificationState.clear();
+    taskHistory.clear();
+    avatars.clear();
+    nextTaskId := 0;
+    nextLogId := 0;
+    nextAvatarId := 0;
+    nextTaskHistoryId := 0;
+    taskPreferences.clear();
+    hiddenAvatarIds.clear();
+
+    isManagerRegistered := false;
+
+    // CRITICAL: Reset access control state to clear all authorization data
+    // This ensures previously authorized principals are no longer authorized
+    accessControlState := AccessControl.initState();
   };
 };

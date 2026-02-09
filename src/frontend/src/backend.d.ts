@@ -58,6 +58,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     registerAssistant(payload: AssistantRegistrationPayload): Promise<boolean>;
     registerManager(payload: ManagerRegistrationPayload): Promise<boolean>;
+    resetState(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     validateManagerToken(token: string): Promise<boolean>;
 }

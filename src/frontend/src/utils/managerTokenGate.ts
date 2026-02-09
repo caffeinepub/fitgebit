@@ -1,58 +1,39 @@
-// Manager token gating utility
-// Manages per-session validation flag, gate messages, and token storage
+/**
+ * Session-based manager token storage utility.
+ * Manages token storage and gate messages in sessionStorage.
+ */
 
-const SESSION_KEY_VALIDATED = 'caffeineManagerTokenValidated';
-const SESSION_KEY_GATE_MESSAGE = 'caffeineManagerGateMessage';
-const SESSION_KEY_TOKEN = 'caffeineAdminToken';
+const MANAGER_TOKEN_KEY = 'caffeineAdminToken';
+const MANAGER_GATE_MESSAGE_KEY = 'caffeineManagerGateMessage';
 
-// Session validation flag management
-export function setManagerTokenValidated(): void {
-  sessionStorage.setItem(SESSION_KEY_VALIDATED, 'true');
-}
-
-export function isManagerTokenValidated(): boolean {
-  return sessionStorage.getItem(SESSION_KEY_VALIDATED) === 'true';
-}
-
-export function clearManagerTokenValidated(): void {
-  sessionStorage.removeItem(SESSION_KEY_VALIDATED);
-}
-
-// Gate message management
-export function setGateMessage(message: string): void {
-  sessionStorage.setItem(SESSION_KEY_GATE_MESSAGE, message);
-}
-
-export function getGateMessage(): string | null {
-  return sessionStorage.getItem(SESSION_KEY_GATE_MESSAGE);
-}
-
-export function clearGateMessage(): void {
-  sessionStorage.removeItem(SESSION_KEY_GATE_MESSAGE);
-}
-
-// Token storage management
-export function getStoredManagerToken(): string | null {
-  return sessionStorage.getItem(SESSION_KEY_TOKEN);
-}
-
+// Token storage
 export function setStoredManagerToken(token: string): void {
-  sessionStorage.setItem(SESSION_KEY_TOKEN, token);
+  sessionStorage.setItem(MANAGER_TOKEN_KEY, token);
+}
+
+export function getStoredManagerToken(): string | null {
+  return sessionStorage.getItem(MANAGER_TOKEN_KEY);
 }
 
 export function clearStoredManagerToken(): void {
-  sessionStorage.removeItem(SESSION_KEY_TOKEN);
+  sessionStorage.removeItem(MANAGER_TOKEN_KEY);
 }
 
-// Clear all manager gate state
+// Gate message
+export function setGateMessage(message: string): void {
+  sessionStorage.setItem(MANAGER_GATE_MESSAGE_KEY, message);
+}
+
+export function getGateMessage(): string | null {
+  return sessionStorage.getItem(MANAGER_GATE_MESSAGE_KEY);
+}
+
+export function clearGateMessage(): void {
+  sessionStorage.removeItem(MANAGER_GATE_MESSAGE_KEY);
+}
+
+// Combined operations
 export function clearAllManagerGateState(): void {
-  clearManagerTokenValidated();
+  clearStoredManagerToken();
   clearGateMessage();
-  clearStoredManagerToken();
-}
-
-// Clear manager gate state for retry (keeps message temporarily for display)
-export function clearManagerGateStateForRetry(): void {
-  clearManagerTokenValidated();
-  clearStoredManagerToken();
 }

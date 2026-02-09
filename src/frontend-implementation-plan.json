@@ -1,43 +1,67 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Login UX: show Internet Identity initialization and login errors on Sign in",
+  "title": "Frontend admin Full System Reset + resilient post-reset auth bootstrap",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Ensure Sign in click always produces immediate visible feedback and surfaces Internet Identity login errors via existing Alert + getUserFacingErrorMessage().",
+      "id": "REQ-3",
+      "summary": "Add an admin-triggered “Full System Reset” UI action with typed confirmation, accessible from login and bootstrap error screens, with clear success/error feedback and correct client-side cleanup.",
       "acceptanceCriteria": [
-        "When the user clicks the Sign in button, the UI changes immediately (spinner/disabled state) OR displays an error message within the existing Alert component.",
-        "If Internet Identity login cannot start because the AuthClient is not initialized yet (useInternetIdentity sets a loginError like “AuthClient is not initialized yet…”), the Login page displays that error to the user instead of appearing to do nothing.",
-        "If the Internet Identity provider reports a login error (loginStatus === 'loginError' and/or loginError is set in the Internet Identity context), the Login page shows a user-friendly message using the existing getUserFacingErrorMessage() mapping.",
-        "The page does not rely on try/catch around `await login()` to detect failures, since `login()` in the Internet Identity hook is synchronous and signals failures via context state."
+        "A user can access a UI action to perform the full reset even if they are stuck at login (i.e., accessible from the login/auth bootstrap error surfaces).",
+        "The UI requires an explicit typed confirmation phrase before enabling the destructive action.",
+        "On success: the app clears client session state (sessionStorage keys), clears the React Query cache, and returns the user to a clean login state.",
+        "On failure: a user-friendly error message is shown and no client-side state is unnecessarily destroyed beyond what is required to present the error."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/components/FullSystemResetDialog.tsx",
+          "operation": "create",
+          "description": "Create a FullSystemResetDialog component (using existing shadcn/ui dialog + form primitives) that calls the backend resetState capability, requires an explicit typed confirmation phrase (e.g., \"FULL SYSTEM RESET\"), and shows clear English success/error feedback. On success, clear only the app’s sessionStorage keys (via clearAllSessionState), clear the React Query cache, sign out via useInternetIdentity().clear(), and return the UI to the Login state. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a React Query mutation hook (e.g., useFullSystemReset) that invokes actor.resetState() and surfaces errors for user-facing handling in the dialog. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/AuthBootstrapErrorScreen.tsx",
+          "operation": "modify",
+          "description": "Wire FullSystemResetDialog into the auth bootstrap error surface so the reset action is available there (even when the user is stuck during bootstrap), alongside Retry and Sign Out. Ensure all UI text remains English. Verify the component's usage instructions before implementing."
+        },
+        {
           "path": "frontend/src/pages/LoginPage.tsx",
           "operation": "modify",
-          "description": "Remove try/catch + awaiting around Internet Identity login() and instead rely on Internet Identity context state (loginStatus/loginError) to drive UI feedback. On Sign in click: clear local/gate errors, persist role/token as before, call login() synchronously, and immediately reflect state via button disabled/spinner/label. Add a small effect that listens for context loginStatus === 'loginError' and maps context loginError through getUserFacingErrorMessage() into the existing Alert so AuthClient-not-initialized and popup/provider failures are visible."
+          "description": "Add a visible entry point to open FullSystemResetDialog on the login screen so an admin can trigger a reset even when login flow is otherwise stuck; keep it clearly labeled and separated (e.g., a destructive/outline action in a small \"Troubleshooting\" section). Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/utils/userFacingError.ts",
           "operation": "modify",
-          "description": "Extend getUserFacingErrorMessage() mappings to cover common Internet Identity/login popup failure strings (e.g., popup blocked, window closed, initialization/login failed) so Login page can show actionable, user-friendly guidance when loginStatus is 'loginError' and/or loginError is set."
+          "description": "Improve error mapping for reset failures: provide a more specific English message for Unauthorized/admin-only reset attempts (e.g., \"Only an administrator can perform a full system reset.\") while keeping other flows unchanged. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Disable Sign in while Internet Identity is initializing and display clear English text indicating authentication is still initializing.",
+      "id": "REQ-4",
+      "summary": "Adjust auth bootstrap so post-reset sign-in routes to Profile Setup when no profile exists, and avoid indefinite loading by preserving timeout + actionable error screen.",
       "acceptanceCriteria": [
-        "While `loginStatus === 'initializing'`, the Sign in button is disabled and shows an initializing label (e.g., “Initializing…”).",
-        "Once initialization completes (`loginStatus` becomes 'idle'), the Sign in button becomes enabled and behaves normally.",
-        "All user-facing text is in English."
+        "Post-reset, signing in with Internet Identity results in the Profile Setup screen when getCallerUserProfile returns null.",
+        "The app does not remain indefinitely on the global “Loading...” screen; if bootstrap exceeds the existing timeout, the AuthBootstrapErrorScreen still provides retry/sign-out/reset actions."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/LoginPage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Wire initializing UX to Internet Identity context: treat loginStatus === 'initializing' as a disabled state for the Sign in button with an \"Initializing...\" label (and optional spinner). Add concise English helper text near the button (or within an Alert) explaining that authentication is still initializing and the user should wait, preventing silent no-op clicks."
+          "description": "Make useGetCallerUserProfile resilient post-reset: if the backend rejects profile fetch due to missing registration/permissions right after a reset (commonly surfaced as an Unauthorized trap), treat it as \"no profile\" (return null) for bootstrap routing rather than a fatal error, while keeping true connectivity/other errors as errors. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Ensure bootstrap routing uses the resilient profile state so authenticated users are sent to ProfileSetupPage when the profile resolves to null after reset, and confirm the existing timeout path continues to render AuthBootstrapErrorScreen with retry/sign-out (and now full reset) actions rather than remaining on a spinner. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/AuthBootstrapErrorScreen.tsx",
+          "operation": "modify",
+          "description": "Confirm that the error screen continues to present Retry and Sign Out and now also provides the Full System Reset action when bootstrap exceeds timeout or profile load errors occur, preventing indefinite loading. Verify the component's usage instructions before implementing."
         }
       ]
     }

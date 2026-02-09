@@ -34,8 +34,17 @@ export function getUserFacingErrorMessage(error: Error | null | unknown): string
     return 'Login popup was blocked or closed. Please allow popups for this site and try again.';
   }
 
+  // Handle timeout errors
+  if (errorMessage.includes('timed out') || errorMessage.includes('timeout')) {
+    return 'The operation took too long to complete. Please check your connection and try again.';
+  }
+
   // Handle common backend trap messages
   if (errorMessage.includes('Unauthorized')) {
+    // Check if this is a reset-specific unauthorized error
+    if (errorMessage.toLowerCase().includes('reset') || errorMessage.toLowerCase().includes('admin')) {
+      return 'Only an administrator can perform a full system reset.';
+    }
     return 'Authorization error. Please sign in again.';
   }
 

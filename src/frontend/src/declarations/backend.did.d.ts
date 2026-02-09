@@ -76,6 +76,7 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'registerAssistant' : ActorMethod<[AssistantRegistrationPayload], boolean>,
   'registerManager' : ActorMethod<[ManagerRegistrationPayload], boolean>,
+  'resetState' : ActorMethod<[], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'validateManagerToken' : ActorMethod<[string], boolean>,
 }

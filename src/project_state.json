@@ -1,32 +1,57 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
+  "summary": "Project experiencing login flow stuck on loading; user requested a full backend state reset and scrubbing all existing user accounts to restart with fresh logins.",
+  "architectural_notes": [
+    "Support administrative full backend state reset (including user account data) to reinitialize login system."
+  ],
   "known_issues": [
-    "Sign-in button click results in no action (no visible response when user clicks 'sign in')."
+    "Login page stuck on loading; unable to get past login screen."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-login-page-so-that-clicking-sign-in-always-results-in-visible-feedback-either-internet-identity-login-starts-status-changes-to-signing-in-or-an-actionable-error-message-is-shown-when-internet-identity-cannot-start-e-g-authclient-not-initialized-yet-or-login-popup-blocked",
-      "title": "Update the Login page so that clicking “Sign in” always results in visible feedback: either Internet Identity login starts (status changes to “Signing in…”) or an actionable error message is shown when Internet Identity cannot start (e.g., AuthClient not initialized yet or login popup blocked).",
+      "id": "feature-add-a-frontend-full-system-reset-entry-point-that-lets-an-admin-trigger-the-backend-full-reset-including-a-strong-confirmation-step-and-clear-success-error-feedback-in-english",
+      "title": "Add a frontend “Full System Reset” entry point that lets an admin trigger the backend full reset, including a strong confirmation step and clear success/error feedback in English.",
       "reqIds": [
-        "REQ-1"
+        "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-prevent-silent-no-op-clicks-by-disabling-the-login-page-sign-in-button-while-internet-identity-is-initializing-and-show-clear-user-facing-text-explaining-that-authentication-is-still-initializing",
-      "title": "Prevent silent no-op clicks by disabling the Login page Sign in button while Internet Identity is initializing, and show clear user-facing text explaining that authentication is still initializing.",
+      "id": "feature-after-performing-a-full-system-reset-verify-and-adjust-the-auth-bootstrap-flow-so-a-user-can-sign-in-with-internet-identity-and-be-routed-to-profile-setup-because-no-user-profile-exists-rather-than-being-stuck-on-an-indefinite-loading-screen",
+      "title": "After performing a full system reset, verify and adjust the auth bootstrap flow so a user can sign in with Internet Identity and be routed to Profile Setup (because no user profile exists) rather than being stuck on an indefinite loading screen.",
       "reqIds": [
-        "REQ-2"
+        "REQ-4"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix Sign In button doing nothing by surfacing Internet Identity login errors and initialization state",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Full backend state reset and scrub all existing user accounts; restart with fresh logins",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Add a backend admin-only method to fully reset application state (scrub all previous users and all related data), so the app can be restarted with fresh logins.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Ensure the full reset also clears access-control/authorization state so that previously authorized principals are no longer authorized after the reset.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Add full system reset to scrub all users and restart fresh logins",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

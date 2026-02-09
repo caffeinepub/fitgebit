@@ -16,7 +16,17 @@ export function useGetCallerUserProfile() {
     queryKey: ['currentUserProfile', identity?.getPrincipal().toString()],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserProfile();
+      try {
+        return await actor.getCallerUserProfile();
+      } catch (error: any) {
+        // Post-reset, the backend may reject profile fetch due to missing registration
+        // Treat "Unauthorized" errors as "no profile" rather than fatal errors
+        if (error?.message?.includes('Unauthorized') || error?.message?.includes('not registered')) {
+          return null;
+        }
+        // Re-throw other errors (connectivity, etc.)
+        throw error;
+      }
     },
     enabled: !!actor && !actorFetching && !!identity,
     retry: false,
@@ -150,19 +160,17 @@ export function useFlushUserAccount() {
   });
 }
 
-// Backend manager token validation
-export function useValidateManagerToken() {
+export function useFullSystemReset() {
   const { actor } = useActor();
 
   return useMutation({
-    mutationFn: async (token: string) => {
+    mutationFn: async () => {
       if (!actor) throw new Error('Actor not available');
       
       try {
-        const isValid = await actor.validateManagerToken(token);
-        return isValid;
+        await actor.resetState();
       } catch (error: any) {
-        // Preserve backend errors for user-facing error utility
+        // Preserve backend trap messages for user-facing error utility
         throw error;
       }
     },

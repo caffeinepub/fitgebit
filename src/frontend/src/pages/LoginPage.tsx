@@ -14,6 +14,8 @@ import {
   clearGateMessage,
   clearAllManagerGateState
 } from '../utils/managerTokenGate';
+import { clearAllSessionState } from '../utils/sessionStateReset';
+import FullSystemResetDialog from '../components/FullSystemResetDialog';
 
 export default function LoginPage() {
   const { login, loginStatus, loginError: contextLoginError } = useInternetIdentity();
@@ -30,7 +32,7 @@ export default function LoginPage() {
       setShowRetryAction(true);
       // Clear the gate message immediately after reading it
       clearGateMessage();
-      // Clear stored manager token and validated flag to allow retry
+      // Clear stored manager token to allow retry
       clearStoredManagerToken();
       // Clear the manager token input field
       setManagerToken('');
@@ -49,8 +51,7 @@ export default function LoginPage() {
       setLoginError(friendlyMessage);
       
       // Clear stored values on error
-      sessionStorage.removeItem('caffeineSelectedRole');
-      clearStoredManagerToken();
+      clearAllSessionState();
     }
   }, [loginStatus, contextLoginError]);
 
@@ -61,10 +62,13 @@ export default function LoginPage() {
     setLoginError(null);
     setShowRetryAction(false);
     
-    // Clear manager-specific state when switching to assistant
+    // Clear all manager-specific state when switching roles
     if (role === 'assistant') {
       setManagerToken('');
-      clearStoredManagerToken();
+      clearAllManagerGateState();
+    } else {
+      // Switching to manager - clear stale state
+      clearAllManagerGateState();
     }
   };
 
@@ -72,7 +76,7 @@ export default function LoginPage() {
     setLoginError(null);
     setShowRetryAction(false);
     setManagerToken('');
-    clearAllManagerGateState();
+    clearAllSessionState();
   };
 
   const handleLogin = () => {
@@ -89,11 +93,11 @@ export default function LoginPage() {
         return;
       }
 
-      // Store token for backend validation after authentication
+      // Store token for registration
       setStoredManagerToken(managerToken.trim());
     } else {
       // Clear any existing admin token for assistant login
-      clearStoredManagerToken();
+      clearAllManagerGateState();
     }
 
     // Call login synchronously - errors will be handled via context state
@@ -138,114 +142,121 @@ export default function LoginPage() {
                       variant="outline"
                       size="sm"
                       onClick={handleClearError}
-                      className="mt-2 w-full"
+                      className="mt-2"
                     >
                       <RefreshCw className="mr-2 h-3 w-3" />
-                      Clear Error and Try Again
+                      Clear and Retry
                     </Button>
                   )}
                 </AlertDescription>
               </Alert>
             )}
 
-            {isInitializing && !loginError && (
-              <Alert className="mb-4">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <AlertTitle>Initializing</AlertTitle>
-                <AlertDescription>
-                  Authentication system is initializing. Please wait a moment...
-                </AlertDescription>
-              </Alert>
+            <div className="mb-6 space-y-3">
+              <Label>Select Your Role</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleRoleClick('assistant')}
+                  disabled={isButtonDisabled}
+                  className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                    selectedRole === 'assistant'
+                      ? 'border-primary bg-primary/5 shadow-sm'
+                      : 'border-border hover:border-primary/50'
+                  } ${isButtonDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                >
+                  <User className={`h-8 w-8 ${selectedRole === 'assistant' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <span className={`text-sm font-medium ${selectedRole === 'assistant' ? 'text-primary' : 'text-foreground'}`}>
+                    Assistant
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleRoleClick('manager')}
+                  disabled={isButtonDisabled}
+                  className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                    selectedRole === 'manager'
+                      ? 'border-primary bg-primary/5 shadow-sm'
+                      : 'border-border hover:border-primary/50'
+                  } ${isButtonDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                >
+                  <Shield className={`h-8 w-8 ${selectedRole === 'manager' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <span className={`text-sm font-medium ${selectedRole === 'manager' ? 'text-primary' : 'text-foreground'}`}>
+                    Manager
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {selectedRole === 'manager' && (
+              <div className="mb-4 space-y-2">
+                <Label htmlFor="managerToken">Manager Token</Label>
+                <Input
+                  id="managerToken"
+                  type="password"
+                  placeholder="Enter manager token"
+                  value={managerToken}
+                  onChange={(e) => setManagerToken(e.target.value)}
+                  disabled={isButtonDisabled}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Required for manager access
+                </p>
+              </div>
             )}
 
-            <div className="space-y-4">
-              {/* Role selector with clickable role words */}
-              <div className="space-y-2">
-                <Label>Role</Label>
-                <div className="flex w-full items-center justify-between rounded-lg border-2 border-primary/20 bg-background p-4">
-                  <div className="flex items-center gap-3">
-                    {selectedRole === 'assistant' ? (
-                      <User className="h-5 w-5 text-primary" />
-                    ) : (
-                      <Shield className="h-5 w-5 text-primary" />
-                    )}
-                    <div className="text-left">
-                      <p className="font-semibold">
-                        <button
-                          type="button"
-                          onClick={() => handleRoleClick(selectedRole === 'assistant' ? 'manager' : 'assistant')}
-                          disabled={isButtonDisabled}
-                          className="text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
-                        >
-                          {selectedRole === 'assistant' ? 'Assistant' : 'Manager'}
-                        </button>
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {selectedRole === 'assistant' 
-                          ? 'Access your tasks and overtime tracking'
-                          : 'Access administrative features'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-xs text-muted-foreground">Click role to switch</span>
-                </div>
-              </div>
-
-              {/* Manager token input - only shown when Manager is selected */}
-              {selectedRole === 'manager' && (
-                <div className="space-y-2">
-                  <Label htmlFor="managerToken">Manager Token</Label>
-                  <Input
-                    id="managerToken"
-                    type="password"
-                    placeholder="Enter manager token"
-                    value={managerToken}
-                    onChange={(e) => setManagerToken(e.target.value)}
-                    disabled={isButtonDisabled}
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    You need the manager token to sign in as a Manager.
-                  </p>
-                </div>
+            <Button
+              onClick={handleLogin}
+              disabled={isButtonDisabled}
+              className="w-full"
+            >
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing In...
+                </>
+              ) : isInitializing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Initializing...
+                </>
+              ) : (
+                <>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Sign In with Internet Identity
+                </>
               )}
+            </Button>
 
-              <Button
-                onClick={handleLogin}
-                disabled={isButtonDisabled}
-                className="w-full"
-              >
-                {isInitializing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Initializing...
-                  </>
-                ) : isLoggingIn ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Sign in as {selectedRole === 'manager' ? 'Manager' : 'Assistant'}
-                  </>
-                )}
-              </Button>
-            </div>
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              By signing in, you agree to our Terms of Service and Privacy Policy
+            </p>
           </CardContent>
         </Card>
 
-        <footer className="mt-16 text-center text-sm text-muted-foreground">
-          © 2026. Built with ❤️ using{' '}
-          <a
-            href="https://caffeine.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-primary hover:underline"
-          >
-            caffeine.ai
-          </a>
+        <div className="mt-8 w-full max-w-md">
+          <Card className="border-destructive/50 bg-destructive/5">
+            <CardHeader>
+              <CardTitle className="text-sm">Troubleshooting</CardTitle>
+              <CardDescription className="text-xs">
+                If you're experiencing login issues or need to reset the system
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FullSystemResetDialog 
+                triggerVariant="outline"
+                triggerClassName="w-full"
+              />
+              <p className="mt-2 text-xs text-muted-foreground text-center">
+                Admin only: Resets all user accounts and system data
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <footer className="mt-12 text-center text-sm text-muted-foreground">
+          <p>© 2026. Built with love using <a href="https://caffeine.ai" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">caffeine.ai</a></p>
         </footer>
       </div>
     </div>

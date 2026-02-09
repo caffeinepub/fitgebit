@@ -1,21 +1,46 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, RefreshCw, LogOut } from 'lucide-react';
 import { getUserFacingErrorMessage } from '../utils/userFacingError';
+import AccountResetDialog from './AccountResetDialog';
+import FullSystemResetDialog from './FullSystemResetDialog';
 
 interface AuthBootstrapErrorScreenProps {
   error: Error | null;
   onRetry: () => Promise<void>;
   onSignOut: () => Promise<void>;
+  isAuthenticated?: boolean;
 }
 
 export default function AuthBootstrapErrorScreen({ 
   error, 
   onRetry, 
-  onSignOut 
+  onSignOut,
+  isAuthenticated = false
 }: AuthBootstrapErrorScreenProps) {
   const errorMessage = getUserFacingErrorMessage(error);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    try {
+      await onRetry();
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await onSignOut();
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10 flex items-center justify-center p-4">
@@ -40,26 +65,63 @@ export default function AuthBootstrapErrorScreen({
 
           <div className="space-y-2">
             <Button 
-              onClick={onRetry} 
+              onClick={handleRetry} 
               className="w-full"
               variant="default"
+              disabled={isRetrying || isSigningOut}
             >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Retry
+              {isRetrying ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Retrying...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Retry
+                </>
+              )}
             </Button>
             
             <Button 
-              onClick={onSignOut} 
+              onClick={handleSignOut} 
               className="w-full"
               variant="outline"
+              disabled={isRetrying || isSigningOut}
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
+              {isSigningOut ? (
+                <>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Signing out...
+                </>
+              ) : (
+                <>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </>
+              )}
             </Button>
+
+            {isAuthenticated && (
+              <>
+                <div className="pt-2">
+                  <AccountResetDialog 
+                    triggerVariant="outline"
+                    triggerClassName="w-full"
+                  />
+                </div>
+                <div className="pt-1">
+                  <FullSystemResetDialog 
+                    triggerVariant="destructive"
+                    triggerClassName="w-full"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
-            If the problem persists, try signing out and logging in again.
+            If the problem persists, try resetting your account or performing a full system reset (admin only).
           </p>
         </CardContent>
       </Card>

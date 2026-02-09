@@ -1,56 +1,107 @@
 {
   "kind": "build_request",
-  "title": "Fix Sign In button doing nothing by surfacing Internet Identity login errors and initialization state",
+  "title": "Add full system reset to scrub all users and restart fresh logins",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the Login page so that clicking “Sign in” always results in visible feedback: either Internet Identity login starts (status changes to “Signing in…”) or an actionable error message is shown when Internet Identity cannot start (e.g., AuthClient not initialized yet or login popup blocked).",
-      "target": "frontend",
+      "text": "Add a backend admin-only method to fully reset application state (scrub all previous users and all related data), so the app can be restarted with fresh logins.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-8"
+          "recent-messages"
         ],
         "quotes": [
-          "Nothing happens when I click on sign in"
+          "I would like to have all previous users scrubbed. Start over with new logins.",
+          "Yes full reset.",
+          "Build"
         ]
       },
       "acceptanceCriteria": [
-        "When the user clicks the Sign in button, the UI changes immediately (spinner/disabled state) OR displays an error message within the existing Alert component.",
-        "If Internet Identity login cannot start because the AuthClient is not initialized yet (useInternetIdentity sets a loginError like “AuthClient is not initialized yet…”), the Login page displays that error to the user instead of appearing to do nothing.",
-        "If the Internet Identity provider reports a login error (loginStatus === 'loginError' and/or loginError is set in the Internet Identity context), the Login page shows a user-friendly message using the existing getUserFacingErrorMessage() mapping.",
-        "The page does not rely on try/catch around `await login()` to detect failures, since `login()` in the Internet Identity hook is synchronous and signals failures via context state."
+        "Backend exposes a new shared call (e.g., resetAllState) that clears all user profiles and all other in-canister state tied to users (tasks, audit logs, overtime, notifications, task history, avatars, preferences, and all ID counters).",
+        "After reset, manager registration is treated as not yet completed (i.e., isManagerRegistered is reset).",
+        "The reset method is access-controlled (admin-only) and traps with an Unauthorized error for non-admin callers.",
+        "Reset method is idempotent: calling it multiple times succeeds and leaves the canister in a clean initial state."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Prevent silent no-op clicks by disabling the Login page Sign in button while Internet Identity is initializing, and show clear user-facing text explaining that authentication is still initializing.",
-      "target": "frontend",
+      "text": "Ensure the full reset also clears access-control/authorization state so that previously authorized principals are no longer authorized after the reset.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-8"
+          "recent-messages"
         ],
         "quotes": [
-          "Nothing happens when I click on sign in"
+          "scrub all previous users",
+          "Yes full reset."
         ]
       },
       "acceptanceCriteria": [
-        "While `loginStatus === 'initializing'`, the Sign in button is disabled and shows an initializing label (e.g., “Initializing…”).",
-        "Once initialization completes (`loginStatus` becomes 'idle'), the Sign in button becomes enabled and behaves normally.",
-        "All user-facing text is in English."
+        "After the reset, previously registered principals do not retain any roles/permissions (they are treated as unregistered).",
+        "Any admin/role assignments created during prior usage are removed/cleared as part of the reset."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add a frontend “Full System Reset” entry point that lets an admin trigger the backend full reset, including a strong confirmation step and clear success/error feedback in English.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "I would like to have all previous users scrubbed. Start over with new logins.",
+          "The login page keeps loading nothing changed"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A user can access a UI action to perform the full reset even if they are stuck at login (i.e., accessible from the login/auth bootstrap error surfaces).",
+        "The UI requires an explicit typed confirmation phrase before enabling the destructive action.",
+        "On success: the app clears client session state (sessionStorage keys), clears the React Query cache, and returns the user to a clean login state.",
+        "On failure: a user-friendly error message is shown and no client-side state is unnecessarily destroyed beyond what is required to present the error."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "After performing a full system reset, verify and adjust the auth bootstrap flow so a user can sign in with Internet Identity and be routed to Profile Setup (because no user profile exists) rather than being stuck on an indefinite loading screen.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "The login page keeps loading nothing changed"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Post-reset, signing in with Internet Identity results in the Profile Setup screen when getCallerUserProfile returns null.",
+        "The app does not remain indefinitely on the global “Loading...” screen; if bootstrap exceeds the existing timeout, the AuthBootstrapErrorScreen still provides retry/sign-out/reset actions."
       ]
     }
   ],
   "constraints": [
-    "Do not edit immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or anything under frontend/src/components/ui.",
-    "Keep the backend unchanged; this fix should be achievable by frontend state/UX handling."
+    "Backend must remain a single Motoko actor with all logic in backend/main.mo.",
+    "Do not edit any files under frontend/src/components/ui or any paths listed as immutable (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx). Compose around them instead.",
+    "Use English for all user-facing UI text."
   ],
   "nonGoals": [
-    "Changing the Internet Identity hook API (e.g., making login() return a Promise) since the hook file is immutable.",
-    "Adding new authentication providers beyond Internet Identity."
+    "Do not add third-party authentication providers (only Internet Identity).",
+    "Do not add external databases or off-canister storage systems.",
+    "Do not redesign unrelated product features (tasks, overtime, dashboards) beyond what’s required to support the reset and unblock login."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }
