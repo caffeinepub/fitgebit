@@ -1,15 +1,17 @@
-import { useState } from 'react';
-import { useRegisterAssistant } from '../hooks/useQueries';
+import { useState, useEffect } from 'react';
+import { useRegisterAssistant, useRegisterManager } from '../hooks/useQueries';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, User, Info, AlertCircle } from 'lucide-react';
+import { Loader2, User, Shield, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Language } from '../backend';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getUserFacingErrorMessage } from '../utils/userFacingError';
+import { Badge } from '@/components/ui/badge';
+import { clearAllManagerGateState } from '../utils/managerTokenGate';
 
 export default function ProfileSetupPage() {
   const [username, setUsername] = useState('');
@@ -17,7 +19,18 @@ export default function ProfileSetupPage() {
   const [overtime, setOvertime] = useState('');
   const [language, setLanguage] = useState<Language>('english' as Language);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const registerMutation = useRegisterAssistant();
+  const [selectedRole, setSelectedRole] = useState<'manager' | 'assistant'>('assistant');
+  
+  const registerAssistantMutation = useRegisterAssistant();
+  const registerManagerMutation = useRegisterManager();
+
+  // Load the selected role from sessionStorage
+  useEffect(() => {
+    const storedRole = sessionStorage.getItem('caffeineSelectedRole');
+    if (storedRole === 'manager' || storedRole === 'assistant') {
+      setSelectedRole(storedRole);
+    }
+  }, []);
 
   const handleOvertimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -54,14 +67,34 @@ export default function ProfileSetupPage() {
     }
 
     try {
-      await registerMutation.mutateAsync({ 
-        username: username.trim(), 
-        language,
-        initials: initials.trim().toUpperCase(),
-        overtime: overtime.trim()
-      });
-      // Success - the mutation will trigger profile refetch and App will transition
-      toast.success('Profile created successfully! Loading your dashboard...');
+      if (selectedRole === 'manager') {
+        // Manager registration
+        const adminToken = sessionStorage.getItem('caffeineAdminToken') || '';
+        
+        await registerManagerMutation.mutateAsync({
+          username: username.trim(),
+          language,
+          initials: initials.trim().toUpperCase(),
+          registrationToken: adminToken,
+        });
+        
+        toast.success('Manager profile created successfully! Loading your dashboard...');
+      } else {
+        // Assistant registration
+        await registerAssistantMutation.mutateAsync({ 
+          username: username.trim(), 
+          language,
+          initials: initials.trim().toUpperCase(),
+          overtime: overtime.trim()
+        });
+        
+        toast.success('Assistant profile created successfully! Loading your dashboard...');
+      }
+
+      // Clear session storage and gate state after successful registration
+      sessionStorage.removeItem('caffeineSelectedRole');
+      sessionStorage.removeItem('caffeineAdminToken');
+      clearAllManagerGateState();
     } catch (error: any) {
       // Extract user-friendly error message
       const friendlyMessage = getUserFacingErrorMessage(error);
@@ -69,6 +102,8 @@ export default function ProfileSetupPage() {
       toast.error(friendlyMessage);
     }
   };
+
+  const isSubmitting = registerAssistantMutation.isPending || registerManagerMutation.isPending;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
@@ -85,22 +120,32 @@ export default function ProfileSetupPage() {
 
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Profile Setup
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                {selectedRole === 'manager' ? (
+                  <>
+                    <Shield className="h-5 w-5" />
+                    Manager Profile Setup
+                  </>
+                ) : (
+                  <>
+                    <User className="h-5 w-5" />
+                    Assistant Profile Setup
+                  </>
+                )}
+              </CardTitle>
+              <Badge variant={selectedRole === 'manager' ? 'default' : 'secondary'}>
+                {selectedRole === 'manager' ? 'Manager' : 'Assistant'}
+              </Badge>
+            </div>
             <CardDescription>
-              Choose a unique username, your initials, and your preferred language
+              {selectedRole === 'manager' 
+                ? 'Create your manager profile to access administrative features'
+                : 'Create your assistant profile to access your tasks and overtime tracking'
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Alert className="mb-4 border-primary/20 bg-primary/5">
-              <Info className="h-4 w-4 text-primary" />
-              <AlertDescription className="text-sm">
-                <strong>Note:</strong> Access to the manager dashboard is granted based on your registration details.
-              </AlertDescription>
-            </Alert>
-
             {errorMessage && (
               <Alert variant="destructive" className="mb-4">
                 <AlertCircle className="h-4 w-4" />
@@ -117,7 +162,7 @@ export default function ProfileSetupPage() {
                   placeholder="Enter your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  disabled={registerMutation.isPending}
+                  disabled={isSubmitting}
                   autoFocus
                 />
                 <p className="text-xs text-muted-foreground">
@@ -132,7 +177,7 @@ export default function ProfileSetupPage() {
                   placeholder="e.g., JD"
                   value={initials}
                   onChange={(e) => setInitials(e.target.value)}
-                  disabled={registerMutation.isPending}
+                  disabled={isSubmitting}
                   maxLength={4}
                 />
                 <p className="text-xs text-muted-foreground">
@@ -140,28 +185,30 @@ export default function ProfileSetupPage() {
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="overtime">Overtime</Label>
-                <Input
-                  id="overtime"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Enter overtime value (optional)"
-                  value={overtime}
-                  onChange={handleOvertimeChange}
-                  disabled={registerMutation.isPending}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Optional numeric value (leave empty if not applicable)
-                </p>
-              </div>
+              {selectedRole === 'assistant' && (
+                <div className="space-y-2">
+                  <Label htmlFor="overtime">Overtime</Label>
+                  <Input
+                    id="overtime"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Enter overtime value (optional)"
+                    value={overtime}
+                    onChange={handleOvertimeChange}
+                    disabled={isSubmitting}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Optional numeric value (leave empty if not applicable)
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="language">Preferred Language</Label>
                 <Select
                   value={language}
                   onValueChange={(value) => setLanguage(value as Language)}
-                  disabled={registerMutation.isPending}
+                  disabled={isSubmitting}
                 >
                   <SelectTrigger id="language">
                     <SelectValue />
@@ -177,15 +224,15 @@ export default function ProfileSetupPage() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={registerMutation.isPending}
+                disabled={isSubmitting}
               >
-                {registerMutation.isPending ? (
+                {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating Profile...
                   </>
                 ) : (
-                  'Create Profile'
+                  `Create ${selectedRole === 'manager' ? 'Manager' : 'Assistant'} Profile`
                 )}
               </Button>
             </form>

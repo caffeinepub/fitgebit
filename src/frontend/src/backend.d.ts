@@ -14,6 +14,12 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
+export interface ManagerRegistrationPayload {
+    username: string;
+    initials: string;
+    language: Language;
+    registrationToken: string;
+}
 export interface AssistantRegistrationPayload {
     username: string;
     overtime: bigint;
@@ -45,10 +51,13 @@ export enum UserRole__1 {
 }
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole__1): Promise<void>;
+    flushUserAccount(): Promise<void>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole__1>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     registerAssistant(payload: AssistantRegistrationPayload): Promise<boolean>;
+    registerManager(payload: ManagerRegistrationPayload): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    validateManagerToken(token: string): Promise<boolean>;
 }

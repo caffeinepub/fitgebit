@@ -20,6 +20,12 @@ export type ExternalBlob = Uint8Array;
 export type Language = { 'french' : null } |
   { 'dutch' : null } |
   { 'english' : null };
+export interface ManagerRegistrationPayload {
+  'username' : string,
+  'initials' : string,
+  'language' : Language,
+  'registrationToken' : string,
+}
 export interface UserProfile {
   'presetAvatarId' : [] | [bigint],
   'principal' : Principal,
@@ -63,12 +69,15 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
+  'flushUserAccount' : ActorMethod<[], undefined>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'registerAssistant' : ActorMethod<[AssistantRegistrationPayload], boolean>,
+  'registerManager' : ActorMethod<[ManagerRegistrationPayload], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'validateManagerToken' : ActorMethod<[string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

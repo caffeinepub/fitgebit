@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
+import { useInternetIdentity } from './useInternetIdentity';
 import type {
   UserProfile,
   Language,
@@ -9,15 +10,18 @@ import { Principal } from '@dfinity/principal';
 // User Profile Queries
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   const query = useQuery<UserProfile | null>({
-    queryKey: ['currentUserProfile'],
+    queryKey: ['currentUserProfile', identity?.getPrincipal().toString()],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.getCallerUserProfile();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && !!identity,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return {
@@ -90,6 +94,77 @@ export function useRegisterAssistant() {
       // Invalidate and actively refetch the profile to ensure UI updates
       await queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       await queryClient.refetchQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useRegisterManager() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { username: string; language: Language; initials: string; registrationToken: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      
+      try {
+        const result = await actor.registerManager({
+          username: data.username,
+          language: data.language,
+          initials: data.initials,
+          registrationToken: data.registrationToken,
+        });
+
+        // Backend returns Bool - throw if false
+        if (!result) {
+          throw new Error('Manager registration failed. Please check your admin token.');
+        }
+
+        return result;
+      } catch (error: any) {
+        // Preserve backend trap messages for user-facing error utility
+        throw error;
+      }
+    },
+    onSuccess: async () => {
+      // Invalidate and actively refetch the profile to ensure UI updates
+      await queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      await queryClient.refetchQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useFlushUserAccount() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      
+      try {
+        await actor.flushUserAccount();
+      } catch (error: any) {
+        // Preserve backend trap messages for user-facing error utility
+        throw error;
+      }
+    },
+  });
+}
+
+// Backend manager token validation
+export function useValidateManagerToken() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (token: string) => {
+      if (!actor) throw new Error('Actor not available');
+      
+      try {
+        const isValid = await actor.validateManagerToken(token);
+        return isValid;
+      } catch (error: any) {
+        // Preserve backend errors for user-facing error utility
+        throw error;
+      }
     },
   });
 }

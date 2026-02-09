@@ -1,53 +1,43 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Unstick authenticated bootstrap + show clear registration errors for first-time users",
+  "title": "Login UX: show Internet Identity initialization and login errors on Sign in",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Show a clear error state (with retry + sign out) when authenticated profile fetch fails, instead of an infinite loading screen.",
+      "summary": "Ensure Sign in click always produces immediate visible feedback and surfaces Internet Identity login errors via existing Alert + getUserFacingErrorMessage().",
       "acceptanceCriteria": [
-        "When a user is authenticated but `useGetCallerUserProfile()` fails, the UI does not loop indefinitely on \"Loading\" / \"Loading profile...\".",
-        "A visible error message is shown in English explaining that the profile could not be loaded, with at least: a \"Retry\" action (refetch) and a \"Sign out\" (or equivalent) action to re-authenticate.",
-        "After clicking \"Retry\", the app attempts to refetch the caller profile and proceeds normally if it succeeds.",
-        "No changes are made to immutable hook files under `frontend/src/hooks/useInternetIdentity.ts(x)` or `frontend/src/hooks/useActor.ts`."
+        "When the user clicks the Sign in button, the UI changes immediately (spinner/disabled state) OR displays an error message within the existing Alert component.",
+        "If Internet Identity login cannot start because the AuthClient is not initialized yet (useInternetIdentity sets a loginError like “AuthClient is not initialized yet…”), the Login page displays that error to the user instead of appearing to do nothing.",
+        "If the Internet Identity provider reports a login error (loginStatus === 'loginError' and/or loginError is set in the Internet Identity context), the Login page shows a user-friendly message using the existing getUserFacingErrorMessage() mapping.",
+        "The page does not rely on try/catch around `await login()` to detect failures, since `login()` in the Internet Identity hook is synchronous and signals failures via context state."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AuthBootstrapErrorScreen.tsx",
-          "operation": "create",
-          "description": "Create an authenticated-bootstrap error screen that explains (in English) the caller profile could not be loaded, and provides actions for Retry (calls a provided refetch callback) and Sign out (calls a provided re-auth callback). Use the selected `authorization` component guidance for handling authorization/trap errors and re-auth flows; verify the component's usage instructions before implementing."
+          "path": "frontend/src/pages/LoginPage.tsx",
+          "operation": "modify",
+          "description": "Remove try/catch + awaiting around Internet Identity login() and instead rely on Internet Identity context state (loginStatus/loginError) to drive UI feedback. On Sign in click: clear local/gate errors, persist role/token as before, call login() synchronously, and immediately reflect state via button disabled/spinner/label. Add a small effect that listens for context loginStatus === 'loginError' and maps context loginError through getUserFacingErrorMessage() into the existing Alert so AuthClient-not-initialized and popup/provider failures are visible."
         },
         {
           "path": "frontend/src/utils/userFacingError.ts",
-          "operation": "create",
-          "description": "Add a small utility to map thrown errors (including backend trap messages such as \"Unauthorized\") into stable, user-facing English messages suitable for bootstrap and registration UIs."
-        },
-        {
-          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Update the authenticated app bootstrap flow to handle `useGetCallerUserProfile()` errors: render `AuthBootstrapErrorScreen` when the profile query is in an error state (instead of showing \"Loading\" / \"Loading profile...\" forever), wire Retry to the query's `refetch()`, and wire Sign out to `useInternetIdentity().clear()` plus clearing React Query cached data. Use the selected `authorization` component guidance for clearing cached application data on logout; verify the component's usage instructions before implementing. Do not modify immutable hook files."
+          "description": "Extend getUserFacingErrorMessage() mappings to cover common Internet Identity/login popup failure strings (e.g., popup blocked, window closed, initialization/login failed) so Login page can show actionable, user-friendly guidance when loginStatus is 'loginError' and/or loginError is set."
         }
       ]
     },
     {
-      "id": "REQ-4",
-      "summary": "Provide explicit, persistent, user-visible error feedback on profile creation failure and ensure successful registration transitions into the dashboard without refresh.",
+      "id": "REQ-2",
+      "summary": "Disable Sign in while Internet Identity is initializing and display clear English text indicating authentication is still initializing.",
       "acceptanceCriteria": [
-        "If `registerAssistant` fails, the Profile Setup page shows an explicit error state/message in English (not only a silent failure).",
-        "The submit button returns to an enabled state after a failed attempt, allowing the user to try again.",
-        "On successful profile creation, the app proceeds into the correct dashboard without requiring a manual refresh."
+        "While `loginStatus === 'initializing'`, the Sign in button is disabled and shows an initializing label (e.g., “Initializing…”).",
+        "Once initialization completes (`loginStatus` becomes 'idle'), the Sign in button becomes enabled and behaves normally.",
+        "All user-facing text is in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/ProfileSetupPage.tsx",
+          "path": "frontend/src/pages/LoginPage.tsx",
           "operation": "modify",
-          "description": "Add an explicit on-page error state (e.g., a destructive Alert area) that becomes visible when `registerAssistant` fails, including backend trap messages when safe to show, using the shared error-to-message utility. Ensure the error state clears on new attempts/success. Keep the submit button enabled after failures by relying on mutation state and not leaving the form stuck. Continue to rely on the existing registration mutation refetch/invalidation so that, on success, App transitions into the correct dashboard without manual refresh. Use the selected `authorization` component guidance for graceful handling of authorization traps; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Harden the `useRegisterAssistant` mutation error propagation so that failures return actionable messages to the UI (preserving backend trap message text when present), and ensure the existing post-success invalidation/refetch of `currentUserProfile` remains in place to trigger the dashboard transition."
+          "description": "Wire initializing UX to Internet Identity context: treat loginStatus === 'initializing' as a disabled state for the Sign in button with an \"Initializing...\" label (and optional spinner). Add concise English helper text near the button (or within an Alert) explaining that authentication is still initializing and the user should wait, preventing silent no-op clicks."
         }
       ]
     }

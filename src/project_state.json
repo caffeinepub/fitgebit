@@ -4,46 +4,29 @@
   "summary": "New project",
   "architectural_notes": [],
   "known_issues": [
-    "Profile/account creation appears to do nothing; user cannot log in/access the app."
+    "Sign-in button click results in no action (no visible response when user clicks 'sign in')."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-authenticated-app-bootstrap-flow-so-that-failures-to-fetch-the-caller-profile-e-g-authorization-access-control-not-initialized-do-not-result-in-a-stuck-loading-state-and-instead-show-a-clear-error-state-with-a-retry-option-and-a-way-to-re-authenticate",
-      "title": "Update the authenticated app bootstrap flow so that failures to fetch the caller profile (e.g., authorization/access-control not initialized) do not result in a stuck loading state, and instead show a clear error state with a retry option and a way to re-authenticate.",
+      "id": "feature-update-the-login-page-so-that-clicking-sign-in-always-results-in-visible-feedback-either-internet-identity-login-starts-status-changes-to-signing-in-or-an-actionable-error-message-is-shown-when-internet-identity-cannot-start-e-g-authclient-not-initialized-yet-or-login-popup-blocked",
+      "title": "Update the Login page so that clicking “Sign in” always results in visible feedback: either Internet Identity login starts (status changes to “Signing in…”) or an actionable error message is shown when Internet Identity cannot start (e.g., AuthClient not initialized yet or login popup blocked).",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-the-profile-creation-ui-provides-explicit-user-visible-feedback-when-profile-creation-fails-including-backend-trap-messages-rather-than-appearing-to-do-nothing",
-      "title": "Ensure the profile creation UI provides explicit, user-visible feedback when profile creation fails (including backend trap messages), rather than appearing to do nothing.",
+      "id": "feature-prevent-silent-no-op-clicks-by-disabling-the-login-page-sign-in-button-while-internet-identity-is-initializing-and-show-clear-user-facing-text-explaining-that-authentication-is-still-initializing",
+      "title": "Prevent silent no-op clicks by disabling the Login page Sign in button while Internet Identity is initializing, and show clear user-facing text explaining that authentication is still initializing.",
       "reqIds": [
-        "REQ-4"
+        "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-2",
-      "summary": "Fix backend registration authorization so a first-time Internet Identity user can successfully create a profile via `registerAssistant` and subsequently be authorized for authenticated app calls.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Adjust backend caller-profile fetching so the frontend can reliably determine whether a logged-in user has a profile: `getCallerUserProfile` must not trap for first-time authenticated users and should return `null` when no profile exists.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Fix profile creation so new users can register and access the app",
+  "new_feature_requests": [],
+  "projectName": "Fix Sign In button doing nothing by surfacing Internet Identity login errors and initialization state",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

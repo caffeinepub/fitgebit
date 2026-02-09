@@ -1,105 +1,56 @@
 {
   "kind": "build_request",
-  "title": "Fix profile creation so new users can register and access the app",
+  "title": "Fix Sign In button doing nothing by surfacing Internet Identity login errors and initialization state",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the authenticated app bootstrap flow so that failures to fetch the caller profile (e.g., authorization/access-control not initialized) do not result in a stuck loading state, and instead show a clear error state with a retry option and a way to re-authenticate.",
+      "text": "Update the Login page so that clicking “Sign in” always results in visible feedback: either Internet Identity login starts (status changes to “Signing in…”) or an actionable error message is shown when Internet Identity cannot start (e.g., AuthClient not initialized yet or login popup blocked).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-6"
+          "msg-8"
         ],
         "quotes": [
-          "Nothing happens when I create a profile. I can't get in."
+          "Nothing happens when I click on sign in"
         ]
       },
       "acceptanceCriteria": [
-        "When a user is authenticated but `useGetCallerUserProfile()` fails, the UI does not loop indefinitely on \"Loading\" / \"Loading profile...\".",
-        "A visible error message is shown in English explaining that the profile could not be loaded, with at least: a \"Retry\" action (refetch) and a \"Sign out\" (or equivalent) action to re-authenticate.",
-        "After clicking \"Retry\", the app attempts to refetch the caller profile and proceeds normally if it succeeds.",
-        "No changes are made to immutable hook files under `frontend/src/hooks/useInternetIdentity.ts(x)` or `frontend/src/hooks/useActor.ts`."
+        "When the user clicks the Sign in button, the UI changes immediately (spinner/disabled state) OR displays an error message within the existing Alert component.",
+        "If Internet Identity login cannot start because the AuthClient is not initialized yet (useInternetIdentity sets a loginError like “AuthClient is not initialized yet…”), the Login page displays that error to the user instead of appearing to do nothing.",
+        "If the Internet Identity provider reports a login error (loginStatus === 'loginError' and/or loginError is set in the Internet Identity context), the Login page shows a user-friendly message using the existing getUserFacingErrorMessage() mapping.",
+        "The page does not rely on try/catch around `await login()` to detect failures, since `login()` in the Internet Identity hook is synchronous and signals failures via context state."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix backend registration authorization so a first-time Internet Identity user can successfully create a profile via `registerAssistant` and subsequently be authorized for authenticated app calls.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "recent-messages-6"
-        ],
-        "quotes": [
-          "Nothing happens when I create a profile. I can't get in."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Calling `registerAssistant` as a newly authenticated principal succeeds without requiring prior `#user` permission (no Unauthorized trap).",
-        "After successful registration, subsequent authenticated calls that require `#user` permission succeed for that same principal (i.e., backend grants/initializes required access control state for the caller).",
-        "If the caller is anonymous (not authenticated), `registerAssistant` fails with a clear trap message in English indicating authorization is required.",
-        "Registration still enforces uniqueness rules (e.g., username not already taken) and returns a clear error message on failure."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Adjust backend caller-profile fetching so the frontend can reliably determine whether a logged-in user has a profile: `getCallerUserProfile` must not trap for first-time authenticated users and should return `null` when no profile exists.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "recent-messages-6"
-        ],
-        "quotes": [
-          "Nothing happens when I create a profile. I can't get in."
-        ]
-      },
-      "acceptanceCriteria": [
-        "For an authenticated principal with no stored `UserProfile`, `getCallerUserProfile` returns `null` (does not trap).",
-        "For an authenticated principal with a stored `UserProfile`, `getCallerUserProfile` returns that profile.",
-        "For an anonymous caller, `getCallerUserProfile` fails in a controlled way (either returns `null` consistently or traps with an English \"Unauthorized\" message), and the frontend handles it without getting stuck."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Ensure the profile creation UI provides explicit, user-visible feedback when profile creation fails (including backend trap messages), rather than appearing to do nothing.",
+      "text": "Prevent silent no-op clicks by disabling the Login page Sign in button while Internet Identity is initializing, and show clear user-facing text explaining that authentication is still initializing.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-6"
+          "msg-8"
         ],
         "quotes": [
-          "Nothing happens when I create a profile. I can't get in."
+          "Nothing happens when I click on sign in"
         ]
       },
       "acceptanceCriteria": [
-        "If `registerAssistant` fails, the Profile Setup page shows an explicit error state/message in English (not only a silent failure).",
-        "The submit button returns to an enabled state after a failed attempt, allowing the user to try again.",
-        "On successful profile creation, the app proceeds into the correct dashboard without requiring a manual refresh."
+        "While `loginStatus === 'initializing'`, the Sign in button is disabled and shows an initializing label (e.g., “Initializing…”).",
+        "Once initialization completes (`loginStatus` becomes 'idle'), the Sign in button becomes enabled and behaves normally.",
+        "All user-facing text is in English."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor with all logic in `backend/main.mo`.",
-    "Do not edit files listed as immutable in SYSTEM_CONTEXT, including `frontend/src/hooks/useActor.ts` and `frontend/src/hooks/useInternetIdentity.ts(x)`.",
-    "Use English for all user-facing text."
+    "Do not edit immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or anything under frontend/src/components/ui.",
+    "Keep the backend unchanged; this fix should be achievable by frontend state/UX handling."
   ],
   "nonGoals": [
-    "Adding new authentication providers (only Internet Identity).",
-    "Introducing external databases or additional backend services.",
-    "Implementing new product features unrelated to registration/login (e.g., new task/overtime functionality)."
+    "Changing the Internet Identity hook API (e.g., making login() return a Promise) since the hook file is immutable.",
+    "Adding new authentication providers beyond Internet Identity."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-authenticated-app-bootstrap-flow-so-that-failures-to-fetch-the-caller-profile-e-g-authorization-access-control-not-initialized-do-not-result-in-a-stuck-loading-state-and-instead-show-a-clear-error-state-with-a-retry-option-and-a-way-to-re-authenticate",
-      "featureTitle": "Update the authenticated app bootstrap flow so that failures to fetch the caller profile (e.g., authorization/access-control not initialized) do not result in a stuck loading state, and instead show a clear error state with a retry option and a way to re-authenticate.",
+      "featureId": "feature-update-the-login-page-so-that-clicking-sign-in-always-results-in-visible-feedback-either-internet-identity-login-starts-status-changes-to-signing-in-or-an-actionable-error-message-is-shown-when-internet-identity-cannot-start-e-g-authclient-not-initialized-yet-or-login-popup-blocked",
+      "featureTitle": "Update the Login page so that clicking “Sign in” always results in visible feedback: either Internet Identity login starts (status changes to “Signing in…”) or an actionable error message is shown when Internet Identity cannot start (e.g., AuthClient not initialized yet or login popup blocked).",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/AuthBootstrapErrorScreen.tsx",
+        "frontend/src/pages/LoginPage.tsx",
         "frontend/src/utils/userFacingError.ts"
       ],
       "components": [
@@ -25,11 +24,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-profile-creation-ui-provides-explicit-user-visible-feedback-when-profile-creation-fails-including-backend-trap-messages-rather-than-appearing-to-do-nothing",
-      "featureTitle": "Ensure the profile creation UI provides explicit, user-visible feedback when profile creation fails (including backend trap messages), rather than appearing to do nothing.",
+      "featureId": "feature-prevent-silent-no-op-clicks-by-disabling-the-login-page-sign-in-button-while-internet-identity-is-initializing-and-show-clear-user-facing-text-explaining-that-authentication-is-still-initializing",
+      "featureTitle": "Prevent silent no-op clicks by disabling the Login page Sign in button while Internet Identity is initializing, and show clear user-facing text explaining that authentication is still initializing.",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/ProfileSetupPage.tsx"
+        "frontend/src/pages/LoginPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -42,7 +40,7 @@
         "camera@1.0.0"
       ],
       "testIds": [
-        "REQ-4"
+        "REQ-2"
       ],
       "confidence": "high"
     }

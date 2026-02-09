@@ -49,6 +49,12 @@ export const AssistantRegistrationPayload = IDL.Record({
   'initials' : IDL.Text,
   'language' : Language,
 });
+export const ManagerRegistrationPayload = IDL.Record({
+  'username' : IDL.Text,
+  'initials' : IDL.Text,
+  'language' : Language,
+  'registrationToken' : IDL.Text,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -79,6 +85,7 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
+  'flushUserAccount' : IDL.Func([], [], []),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
   'getUserProfile' : IDL.Func(
@@ -92,7 +99,9 @@ export const idlService = IDL.Service({
       [IDL.Bool],
       [],
     ),
+  'registerManager' : IDL.Func([ManagerRegistrationPayload], [IDL.Bool], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'validateManagerToken' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
 });
 
 export const idlInitArgs = [];
@@ -139,6 +148,12 @@ export const idlFactory = ({ IDL }) => {
     'initials' : IDL.Text,
     'language' : Language,
   });
+  const ManagerRegistrationPayload = IDL.Record({
+    'username' : IDL.Text,
+    'initials' : IDL.Text,
+    'language' : Language,
+    'registrationToken' : IDL.Text,
+  });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -169,6 +184,7 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
+    'flushUserAccount' : IDL.Func([], [], []),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
     'getUserProfile' : IDL.Func(
@@ -182,7 +198,9 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Bool],
         [],
       ),
+    'registerManager' : IDL.Func([ManagerRegistrationPayload], [IDL.Bool], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'validateManagerToken' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   });
 };
 

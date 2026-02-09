@@ -1,12 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Fix registration/profile bootstrap so first-time authenticated users can create a profile and enter the app without getting stuck on loading.
+**Goal:** Fix the Login page so clicking “Sign in” never appears to do nothing by clearly reflecting Internet Identity initialization, sign-in progress, and any login errors.
 
 **Planned changes:**
-- Update the authenticated app bootstrap flow to handle `useGetCallerUserProfile()` failures by showing a clear error state with actions to retry fetching the profile and to sign out/re-authenticate (instead of an infinite loading loop).
-- Adjust backend authorization so `registerAssistant` succeeds for newly authenticated Internet Identity users (no prior `#user` permission required), initializes/grants the needed access control for that principal, and still rejects anonymous callers with a clear English authorization error.
-- Change `getCallerUserProfile` behavior so it returns `null` (no trap) for authenticated users who do not yet have a profile, and behaves in a controlled way for anonymous callers so the frontend can handle it without getting stuck.
-- Update the profile creation UI to display explicit English error feedback (including backend trap messages) when profile creation fails, re-enable the submit button after failures, and navigate into the dashboard immediately after successful creation (no manual refresh).
+- Update the Login page to immediately show visible feedback on Sign in (disabled/spinner and “Signing in…” state) when login is triggered.
+- Disable the Sign in button while Internet Identity is initializing (`loginStatus === 'initializing'`) and show clear English text indicating authentication is still initializing.
+- Surface Internet Identity context errors on the Login page using the existing Alert component, including:
+  - AuthClient-not-initialized cases (e.g., `loginError` set by the hook while initializing)
+  - Provider-reported login errors (`loginStatus === 'loginError'` and/or `loginError` set), mapped through the existing `getUserFacingErrorMessage()` helper.
+- Ensure the Login page relies on Internet Identity context state for failure handling (not `try/catch` around `await login()`).
 
-**User-visible outcome:** New users can register/create a profile and access the dashboard; if profile loading or creation fails, they see a clear error message with a retry option and a way to sign out and try again.
+**User-visible outcome:** Users clicking “Sign in” will always see immediate status feedback (Initializing/Signing in) or a clear, actionable error message instead of a silent no-op.

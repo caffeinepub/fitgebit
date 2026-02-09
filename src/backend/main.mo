@@ -5,20 +5,22 @@ import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Int "mo:core/Int";
-import Time "mo:core/Time";
 import Nat "mo:core/Nat";
+import Time "mo:core/Time";
 import Order "mo:core/Order";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
-import Migration "migration";
 
 // Specify the data migration function in with-clause
-(with migration = Migration.run)
+
 actor {
   include MixinStorage();
+
+  let managerRegistrationToken = "admin";
+  var isManagerRegistered = false;
 
   type Language = {
     #english;
@@ -26,10 +28,7 @@ actor {
     #french;
   };
 
-  type UserRole = {
-    #manager;
-    #assistant;
-  };
+  type UserRole = { #manager; #assistant };
 
   type Avatar = {
     id : Nat;
@@ -49,20 +48,12 @@ actor {
   };
 
   module TaskFrequency {
-    public type TaskFrequency = {
-      #daily;
-      #weekly;
-      #monthly;
-    };
+    public type TaskFrequency = { #daily; #weekly; #monthly };
   };
   type TaskFrequency = TaskFrequency.TaskFrequency;
 
   module TaskPreference {
-    public type TaskPreference = {
-      #preferred;
-      #hated;
-      #neutral;
-    };
+    public type TaskPreference = { #preferred; #hated; #neutral };
   };
   type TaskPreference = TaskPreference.TaskPreference;
 
@@ -147,11 +138,7 @@ actor {
   };
 
   module AuditLogAction {
-    public type AuditLogAction = {
-      #taskCreated;
-      #taskUpdated;
-      #taskMarkedDone;
-    };
+    public type AuditLogAction = { #taskCreated; #taskUpdated; #taskMarkedDone };
   };
   type AuditLogAction = AuditLogAction.AuditLogAction;
 
@@ -206,6 +193,13 @@ actor {
     overtime : Nat;
   };
 
+  type ManagerRegistrationPayload = {
+    username : Text;
+    language : Language;
+    initials : Text;
+    registrationToken : Text;
+  };
+
   let userProfiles = Map.empty<Principal, UserProfile>();
   let taskState = Map.empty<Nat, ToDoTask>();
   let auditLog = Map.empty<Nat, AuditLogEntry>();
@@ -219,9 +213,6 @@ actor {
   var nextTaskHistoryId : Nat = 0;
   let taskPreferences = Map.empty<Text, Map.Map<Nat, TaskPreference>>();
   let hiddenAvatarIds = List.empty<Nat>();
-
-  let accessControlState = AccessControl.initState();
-  include MixinAuthorization(accessControlState);
 
   func isManager(caller : Principal) : Bool {
     switch (userProfiles.get(caller)) {
@@ -239,11 +230,11 @@ actor {
 
   func sanitizeTaskHistoryEntry(entry : TaskHistoryEntry, isManagerCaller : Bool) : TaskHistoryEntry {
     if (isManagerCaller) {
-      entry
+      entry;
     } else {
       {
         entry with
-        completedOnTime = null
+        completedOnTime = null;
       };
     };
   };
@@ -272,8 +263,14 @@ actor {
     };
   };
 
+  let accessControlState = AccessControl.initState();
+  include MixinAuthorization(accessControlState);
+
   public shared ({ caller }) func registerAssistant(payload : AssistantRegistrationPayload) : async Bool {
-    // Check if userProfile is already registered
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Anonymous users cannot register");
+    };
+
     switch (userProfiles.get(caller)) {
       case (?existingUser) {
         Runtime.trap("User already registered");
@@ -281,7 +278,6 @@ actor {
       case null {};
     };
 
-    // Ensure reserved usernames are not used
     if (payload.username == "manager") {
       Runtime.trap("Username 'manager' is reserved");
     };
@@ -309,11 +305,49 @@ actor {
     true;
   };
 
+  public shared ({ caller }) func registerManager(payload : ManagerRegistrationPayload) : async Bool {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Anonymous users cannot register");
+    };
+
+    if (isManagerRegistered) {
+      Runtime.trap("Manager already registered via local method");
+    };
+
+    switch (userProfiles.get(caller)) {
+      case (?existingUser) {
+        Runtime.trap("User already registered");
+      };
+      case null {};
+    };
+
+    if (payload.registrationToken != managerRegistrationToken) {
+      Runtime.trap("Invalid registration token");
+    };
+
+    let managerProfile : UserProfile = {
+      principal = caller;
+      username = payload.username;
+      role = #manager;
+      language = payload.language;
+      initials = payload.initials;
+      profilePicture = null;
+      presetAvatarId = null;
+    };
+
+    userProfiles.add(caller, managerProfile);
+
+    AccessControl.assignRole(accessControlState, caller, caller, #admin);
+
+    isManagerRegistered := true;
+    true;
+  };
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     userProfiles.get(caller);
   };
 
-  public shared query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
     if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
@@ -321,9 +355,48 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Anonymous users cannot save profiles");
     };
+
+    if (profile.principal != caller) {
+      Runtime.trap("Unauthorized: Cannot save profile for another user");
+    };
+
+    switch (userProfiles.get(caller)) {
+      case (null) {
+        Runtime.trap("Unauthorized: User not registered");
+      };
+      case (?existingProfile) {
+        if (existingProfile.role != profile.role) {
+          Runtime.trap("Unauthorized: Cannot change your own role in profile");
+        };
+      };
+    };
+
     userProfiles.add(caller, profile);
+  };
+
+  public shared ({ caller }) func flushUserAccount() : async () {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Anonymous users cannot flush accounts");
+    };
+
+    switch (userProfiles.get(caller)) {
+      case (null) { Runtime.trap("No user profile found to flush") };
+      case (?_) { userProfiles.remove(caller) };
+    };
+  };
+
+  public query ({ caller }) func validateManagerToken(token : Text) : async Bool {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Anonymous users cannot validate tokens");
+    };
+    
+    if (Text.equal(token, managerRegistrationToken)) {
+      true;
+    } else {
+      false;
+    };
   };
 };
